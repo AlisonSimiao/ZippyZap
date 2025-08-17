@@ -5,6 +5,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 import { Badge } from "@/components/ui/badge"
 import { MessageSquare, Zap, Shield, Webhook, FileText, Users, ArrowRight, CheckCircle } from "lucide-react"
 import { useState } from "react"
+import { PricingSection } from "@/components/pricing-section"
 
 function CodeExamples() {
   const examples = {
@@ -267,6 +268,9 @@ func main() {
           </div>
         </div>
       </section>
+
+      {/* Pricing Section */}
+      <PricingSection />
 
       {/* Code Example Section */}
       <section className="py-20 px-4 bg-[#F5F5F5]">
