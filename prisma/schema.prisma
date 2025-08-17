@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int        @id @default(autoincrement())
+  email         String     @unique
+  whatsapp      String     @unique
+  password      String
+  name          String?
+  isActive      Boolean    @default(true)
+  webhookUrl    String?
+  retentionDays Int        @default(30)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  messages      Message[]
+  UserPlan      UserPlan[]
+
+  @@map("users")
+}
+
+enum EStatusPlan {
+  PENDING
+  Active
+  INACTIVE
+
+  @@map("status_plans")
+}
+
+model UserPlan {
+  id        Int         @id @default(autoincrement())
+  name      String?     @default(nanoid())
+  apiKey    String      @unique @default(uuid())
+  planId    Int         @map("plan_id")
+  userId    Int         @map("user_id")
+  status    EStatusPlan @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Plan      Plan        @relation(fields: [planId], references: [id])
+  User      User        @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([planId])
+  @@map("users_plans")
+}
+
+model Plan {
+  id           Int        @id @default(autoincrement())
+  name         String     @unique
+  dailyLimit   BigInt
+  monthlyLimit BigInt
+  price        Decimal    @db.Decimal(10, 2)
+  features     String[]
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  UserPlan     UserPlan[]
+
+  @@map("plans")
+}
+
+model Message {
+  id        String        @id @default(cuid())
+  userId    Int
+  to        String
+  content   String
+  messageId String? // ID retornado pelo Baileys
+  status    MessageStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("messages")
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
