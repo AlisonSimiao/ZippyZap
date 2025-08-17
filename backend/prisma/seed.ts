@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { PrismaClient, User } from '@prisma/client';
+import { hash } from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -53,14 +54,14 @@ async function createAdmin(logger: Logger) {
   const admin: User = {
     name: 'Admin',
     email: 'XXXXXXXXXXXXXX',
-    password: 'XXXXX',
-    id: 0,
+    password: await hash('XXXXX', 12),
+    id: 1,
     isActive: false,
     whatsapp: '+164879562356',
-    apiKey: 'abc',
     webhookUrl: 'http://localhost:3002',
     retentionDays: 0,
-    planId: 3,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   await prisma.user
@@ -80,6 +81,7 @@ async function main() {
   const logger = new Logger('Seed');
 
   await createPlains(logger);
+  await createAdmin(logger);
 }
 
 main().catch((e) => {
