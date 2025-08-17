@@ -10,24 +10,24 @@ async function createPlains(logger: Logger) {
   const plains = [
     {
       name: 'Gratuito',
-      dailyLimit: 20,
-      monthlyLimit: 700,
+      dailyLimit: 50,
+      monthlyLimit: 1500,
       price: 0,
       features: ['API'],
     },
     {
       name: 'Básico',
-      dailyLimit: 1000,
-      monthlyLimit: 20000,
-      price: 29.9,
+      dailyLimit: 2500,
+      monthlyLimit: 50000,
+      price: 39.9,
       features: ['API', 'Webhooks'],
     },
     {
       name: 'Premium',
       dailyLimit: 999999999,
       monthlyLimit: 999999999,
-      price: 64.99,
-      features: ['API', 'Webhooks', 'sem limites'],
+      price: 99.9,
+      features: ['API', 'Webhooks', 'Ilimitado'],
     },
   ];
 
