@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   title: "ZippyZap - WhatsApp API Integration",
   description: "Integre mensagens WhatsApp facilmente em suas aplicações com nossa API confiável e escalável",
   generator: "v0.app",
+  icons: {
+    icon: '/favicon/favicon.ico',
+    shortcut: '/favicon/favicon-16x16.png',
+    apple: '/favicon/apple-touch-icon.png',
+  }
 }
 
 export default function RootLayout({
