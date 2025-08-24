@@ -7,7 +7,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from './prisma/prisma.module';
 import { PlanModule } from './plan/plan.module';
 import { BullModule } from '@nestjs/bullmq';
-import { RedisService } from './redis/redis.service';
 
 @Module({
   imports: [

@@ -1,20 +1,17 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import {
   ConflictException,
   ForbiddenException,
   Injectable,
-  HttpException,
-  HttpStatus,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { JwtService } from '@nestjs/jwt';
+import { compare, hash } from 'bcrypt';
+import { Queue } from 'bullmq';
 import { LoginhDto, ResponseLogin } from 'src/auth/dto/login-auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { compare, hash } from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { firstValueFrom } from 'rxjs';
 import { RedisService } from 'src/redis/redis.service';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UserService {
@@ -71,7 +68,7 @@ export class UserService {
       throw new ConflictException(`Usuario com ${prop} '${value}' já existe`);
     }
 
-    const user = await this.prisma.user.create({
+    await this.prisma.user.create({
       data: {
         name: createUserDto.name,
         email: createUserDto.email,
