@@ -25,7 +25,9 @@ export class PrismaService
         );
         this.logger.debug(`Connected to database: ${url}`);
       })
-      .catch((error: Error) => this.logger.error(error.message));
+      .catch((error: Error) => {
+        throw error;
+      });
   }
 
   async onModuleDestroy() {

@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { MessageSquare, Zap, Shield, Webhook, FileText, Users, ArrowRight, CheckCircle } from "lucide-react"
 import { useState } from "react"
 import { PricingSection } from "@/components/pricing-section"
+import { HEADERS } from "@/components/Header"
+import Image from "next/image"
 
 function CodeExamples() {
   const examples = {
@@ -90,38 +92,7 @@ func main() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-[#333333] sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#FFD700] rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-black" />
-            </div>
-            <span className="text-xl font-serif font-bold text-white">ZippyZap</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-white/80 hover:text-white transition-colors">
-              Recursos
-            </a>
-            <a href="#docs" className="text-white/80 hover:text-white transition-colors">
-              Documentação
-            </a>
-            <a href="#pricing" className="text-white/80 hover:text-white transition-colors">
-              Preços
-            </a>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-white text-white hover:bg-white hover:text-[#333333] bg-transparent"
-            >
-              Login
-            </Button>
-            <Button size="sm" className="bg-[#FFD700] text-black hover:bg-[#FFD700]/90">
-              Começar Grátis
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <HEADERS.HeaderLp />     
 
       {/* Hero Section */}
       <section className="py-20 px-4 bg-[#F5F5F5]">
@@ -172,9 +143,11 @@ func main() {
 
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-white p-8">
-                <img
+                <Image
                   src="/happy-professional-success.png"
                   alt="Pessoa bem-sucedida usando ZippyZap no notebook"
+                  width={600}
+                  height={400}
                   className="w-full h-auto rounded-lg"
                 />
                 <div className="absolute top-4 right-4 bg-[#25D366] text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
@@ -193,7 +166,7 @@ func main() {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* RecursosFeatures Section */}
       <section id="features" className="py-20 px-4 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-16">

@@ -21,4 +21,8 @@ export class RedisService {
   async set(key: string, value: string): Promise<void> {
     await RedisService.redisClient.set(key, value);
   }
+
+  async publish(chanel: string, data: string) {
+    return RedisService.redisClient.publish(chanel, data);
+  }
 }

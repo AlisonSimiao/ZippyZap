@@ -1,11 +1,28 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
+
+class ValidationError extends HttpException {
+  constructor(errors: Record<string, string[]>) {
+    super(errors, HttpStatus.UNPROCESSABLE_ENTITY);
+  }
+}
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      errorHttpStatusCode: 422,
+      exceptionFactory: (errors) => {
+        const result: Record<string, string[]> = {};
+        errors.forEach((error) => {
+          result[error.property] = Object.values(error.constraints || {});
+        });
+        return new ValidationError(result);
+      },
+    }),
+  );
 
   app.enableCors({
     origin: '*',

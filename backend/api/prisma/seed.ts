@@ -53,7 +53,7 @@ async function createAdmin(logger: Logger) {
 
   const admin: User = {
     name: 'Admin',
-    email: 'XXXXXXXXXXXXXX',
+    email: 'X@X.com',
     password: await hash('XXXXX', 12),
     id: 1,
     isActive: false,

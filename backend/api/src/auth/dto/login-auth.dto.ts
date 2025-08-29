@@ -7,5 +7,5 @@ export class ResponseLogin {
 
 export class LoginhDto {
   email: string;
-  login: string;
+  password: string;
 }

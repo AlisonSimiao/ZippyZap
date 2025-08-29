@@ -2,6 +2,8 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Playfair_Display, Source_Sans_3 } from "next/font/google"
 import "./globals.css"
+import { Toaster } from "react-hot-toast"
+import { Providers } from "../components/providers"
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -35,7 +37,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={`${playfairDisplay.variable} ${sourceSans.variable} antialiased`}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
+      </body>
     </html>
   )
 }

@@ -54,16 +54,15 @@ export class WhatsappService implements OnModuleInit {
         const { connection, lastDisconnect, qr } = update;
 
         if (qr) {
-          this.logger.log(`QR Code: ${qr}`);
-          await this.redisService.set(
-            `qrCode:${idUser}`,
+          this.logger.log(`gerado QR Code: ${idUser}`);
+          await this.redisService.publish(
+            `user:${idUser}:qrcode`,
             JSON.stringify({
               qr,
-              initIn: format(new Date(), 'dd/MM/yyyy HH:mm:ss'),
               expireIn: format(
-                new Date(Date.now() + 1000 * 60),
+                new Date(Date.now() + 1000 * 59),
                 'dd/MM/yyyy HH:mm:ss',
-              ), // 60 s
+              ),
             }),
           );
         }

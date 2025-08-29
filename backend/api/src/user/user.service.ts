@@ -27,7 +27,7 @@ export class UserService {
       where: { email: body.email },
     });
 
-    if (!user || !(await compare(body.login, user.password))) {
+    if (!user || !(await compare(body.password, user.password))) {
       throw new ForbiddenException('Invalid credentials');
     }
 
