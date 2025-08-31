@@ -1,10 +1,11 @@
 import { EStatusApiKey } from '@prisma/client';
-import { IsEnum, IsString, MinLength } from 'class-validator';
+import { IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateApiKeyDto {
+  @IsOptional()
   @MinLength(3)
   @IsString()
-  name: string;
+  name?: string;
 
   @IsEnum(EStatusApiKey)
   status: EStatusApiKey;

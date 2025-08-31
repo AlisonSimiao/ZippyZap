@@ -21,7 +21,7 @@ export class AuthMiddleware implements NestMiddleware {
     next: () => void,
   ) {
     const token = req.headers.authorization?.split(' ')[1] as string;
-    console.log({ token });
+
     if (!token) throw new ForbiddenException('Token not found');
 
     const payload = this.jwtService.verify<{ id: number }>(token, {
