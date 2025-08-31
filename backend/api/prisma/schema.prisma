@@ -14,58 +14,55 @@ datasource db {
 }
 
 model User {
-  id            Int        @id @default(autoincrement())
-  email         String     @unique
-  whatsapp      String     @unique
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  whatsapp      String    @unique
   password      String
   name          String?
-  isActive      Boolean    @default(true)
+  isActive      Boolean   @default(true)
   webhookUrl    String?
-  retentionDays Int        @default(30)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  retentionDays Int       @default(30)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   messages      Message[]
-  UserPlan      UserPlan[]
+  Plan          Plan      @relation(fields: [planId], references: [id])
+  planId        Int       @default(1)
+  ApiKeys       ApiKey[]
 
   @@map("users")
 }
 
-enum EStatusPlan {
-  PENDING
-  Active
-  INACTIVE
+enum EStatusApiKey {
+  ACTIVE
+  REVOKED
 
-  @@map("status_plans")
+  @@map("status_api_key")
 }
 
-model UserPlan {
-  id        Int         @id @default(autoincrement())
-  name      String?     @default(nanoid())
-  apiKey    String      @unique @default(uuid())
-  planId    Int         @map("plan_id")
-  userId    Int         @map("user_id")
-  status    EStatusPlan @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  Plan      Plan        @relation(fields: [planId], references: [id])
-  User      User        @relation(fields: [userId], references: [id])
+model ApiKey {
+  id        Int           @id @default(autoincrement())
+  name      String?       @default(nanoid())
+  hash      String        @unique @default(uuid())
+  userId    Int           @map("user_id")
+  status    EStatusApiKey @default(ACTIVE)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  User      User          @relation(fields: [userId], references: [id])
 
-  @@index([userId])
-  @@index([planId])
-  @@map("users_plans")
+  @@unique([userId, hash])
+  @@map("api_keys")
 }
 
 model Plan {
-  id           Int        @id @default(autoincrement())
-  name         String     @unique
-  dailyLimit   Int        @default(0) @db.Integer
-  monthlyLimit Int        @default(0) @db.Integer
-  price        Decimal    @db.Decimal(10, 2)
-  features     String[]
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  UserPlan     UserPlan[]
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  dailyLimit   Int      @default(0) @db.Integer
+  monthlyLimit Int      @default(0) @db.Integer
+  price        Decimal  @db.Decimal(10, 2)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  User         User[]
 
   @@map("plans")
 }
