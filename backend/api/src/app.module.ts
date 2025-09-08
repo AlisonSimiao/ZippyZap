@@ -30,8 +30,10 @@ import { ApiKeyModule } from './api-key/api-key.module';
     }),
     BullModule.forRoot({
       connection: {
-        host: 'localhost',
-        port: 6379,
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+        username: process.env.REDIS_USER,
+        password: process.env.REDIS_PASS,
       },
     }),
     PlanModule,

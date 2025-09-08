@@ -1,0 +1,6 @@
+version: "3"
+authtoken: seu_token_aqui_12345  # Use seu token REAL do dashboard.ngrok.com
+tunnels:
+  meu-app:
+    addr: http://localhost:8080  # Aponta para o NOME do serviço no docker-compose e sua porta INTERNA
+    proto: http
