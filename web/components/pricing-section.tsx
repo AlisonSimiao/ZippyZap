@@ -114,9 +114,6 @@ export function PricingSection() {
                   </span>
                   <span className="text-[#333333]/70">/mês</span>
                 </div>
-                <CardDescription className="text-[#333333]/70">
-                  {plan.features[0] || 'Plano completo para suas necessidades'}
-                </CardDescription>
               </CardHeader>
               
               <div className="px-6 pb-6">
@@ -133,12 +130,7 @@ export function PricingSection() {
                       {formatLimit(plan.monthlyLimit)} mensagens/mês
                     </span>
                   </li>
-                  {plan.features.slice(1).map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-[#25D366]" />
-                      <span className="text-[#333333]">{feature}</span>
-                    </li>
-                  ))}
+                  
                 </ul>
                 
                 <Button className="w-full bg-[#FFD700] text-black hover:bg-[#FFD700]/90">
