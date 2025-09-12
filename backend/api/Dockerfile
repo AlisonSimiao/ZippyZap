@@ -2,8 +2,10 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm config set registry https://registry.npmjs.org/
-RUN npm config set timeout 300000
-RUN npm install
+RUN npm config set fetch-timeout 300000
+RUN npm config set fetch-retry-mintimeout 20000
+RUN npm config set fetch-retry-maxtimeout 120000
+RUN npm install --no-audit --no-fund
 COPY . .
 ENV DATABASE_URL="postgresql://postgres.tgyyvbbejknsvholpinc:NLpZMVjlLohD2RWG@aws-1-sa-east-1.pooler.supabase.com/postgres?pgbouncer=true"
 RUN npx prisma generate
