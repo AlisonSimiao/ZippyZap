@@ -33,6 +33,21 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /home/ubuntu/zap/backend/DOCKER
+            
+            # Create SSL directories if not exist
+            mkdir -p certbot/conf certbot/www
+            
+            # Stop containers
             sudo docker-compose down
+            
+            # Initialize SSL if certificates don't exist
+            if [ ! -f "certbot/conf/live/163.176.233.87/fullchain.pem" ]; then
+              chmod +x init-letsencrypt.sh
+              ./init-letsencrypt.sh
+            fi
+            
+            # Start all services
             sudo docker-compose up -d --build
+            
+            # Cleanup
             sudo docker image prune -f
