@@ -1,11 +1,13 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package*.json ./
+RUN npm config set registry https://registry.npmjs.org/
+RUN npm config set timeout 300000
+RUN npm install
 COPY . .
 ENV DATABASE_URL="postgresql://postgres.tgyyvbbejknsvholpinc:NLpZMVjlLohD2RWG@aws-1-sa-east-1.pooler.supabase.com/postgres?pgbouncer=true"
-RUN yarn prisma generate
-RUN yarn build
+RUN npx prisma generate
+RUN npm run build
 
 FROM node:20-alpine
 WORKDIR /app
