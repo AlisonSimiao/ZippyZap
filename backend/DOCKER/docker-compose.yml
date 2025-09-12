@@ -19,20 +19,20 @@ services:
     ports:
        - "8080:8080"
 
-  worker:
-    build:
-      context: ./../wss
-      dockerfile: Dockerfile
-      args:
-        APP_NAME: worker
-    container_name: nest_worker
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres.tgyyvbbejknsvholpinc:NLpZMVjlLohD2RWG@aws-1-sa-east-1.pooler.supabase.com/postgres?pgbouncer=true
-      - REDIS_HOST=redis-17498.crce207.sa-east-1-2.ec2.redns.redis-cloud.com
-      - REDIS_PASS=pxSrCrvgRoTfWfcsqupckoYjrYQPkSfu
-      - REDIS_PORT=17498
-      - REDIS_USER=default
+  # worker:
+  #   build:
+  #     context: ./../wss
+  #     dockerfile: Dockerfile
+  #     args:
+  #       APP_NAME: worker
+  #   container_name: nest_worker
+  #   environment:
+  #     - NODE_ENV=production
+  #     - DATABASE_URL=postgresql://postgres.tgyyvbbejknsvholpinc:NLpZMVjlLohD2RWG@aws-1-sa-east-1.pooler.supabase.com/postgres?pgbouncer=true
+  #     - REDIS_HOST=redis-17498.crce207.sa-east-1-2.ec2.redns.redis-cloud.com
+  #     - REDIS_PASS=pxSrCrvgRoTfWfcsqupckoYjrYQPkSfu
+  #     - REDIS_PORT=17498
+  #     - REDIS_USER=default
 
   proxy:
     image: nginx:alpine
@@ -45,4 +45,3 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - api
-      - worker
