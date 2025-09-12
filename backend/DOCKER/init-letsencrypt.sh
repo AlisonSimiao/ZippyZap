@@ -1,21 +1,12 @@
 #!/bin/bash
 
-domains=(163.176.233.87)
-email="admin@zapi.com"
-
 # Create directories
-mkdir -p certbot/conf certbot/www
+mkdir -p ssl
 
-# Start nginx first
-docker-compose up -d proxy
+# Generate self-signed certificate for IP
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout ssl/privkey.pem \
+    -out ssl/fullchain.pem \
+    -subj "/C=BR/ST=SP/L=SP/O=ZAPI/CN=163.176.233.87"
 
-# Get certificate
-docker-compose run --rm certbot certonly --webroot \
-  --webroot-path /var/www/certbot \
-  --email $email \
-  --agree-tos \
-  --no-eff-email \
-  -d ${domains[0]}
-
-# Restart nginx
-docker-compose restart proxy
+echo "Self-signed SSL certificate created for IP 163.176.233.87"

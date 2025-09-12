@@ -41,7 +41,7 @@ jobs:
             sudo docker-compose down
             
             # Initialize SSL if certificates don't exist
-            if [ ! -f "certbot/conf/live/163.176.233.87/fullchain.pem" ]; then
+            if [ ! -f "ssl/fullchain.pem" ]; then
               chmod +x init-letsencrypt.sh
               ./init-letsencrypt.sh
             fi
