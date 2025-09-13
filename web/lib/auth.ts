@@ -1,7 +1,6 @@
 import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { api } from "./api"
-import { error } from "console"
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -15,13 +14,17 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           return null
         }
-        console.log(credentials)
-        const response = await api.login(credentials).catch(() => {
-          console.log(error)
-          throw new Error("Invalid credentials")
-        })
-
-        return response
+        
+        try {
+          const response = await api.login(credentials)
+          return {
+            user: response.user,
+            token: response.token
+          }
+        } catch (error) {
+          console.error('Login error:', error)
+          return null
+        }
       }
     })
   ],
@@ -30,5 +33,19 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt"
+  },
+  callbacks: {
+    async jwt({ token, user }: {token: any, user: any}) {
+      if (user) {
+        token.user = user.user
+        token.accessToken = user.token
+      }
+      return token
+    },
+    async session({ session, token }) {
+      session.user = token.user as any
+      (session as any).accessToken = token.accessToken as any
+      return session
+    }
   }
 }

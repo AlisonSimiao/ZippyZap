@@ -1,4 +1,5 @@
 export interface IUser {
+  id: number
   email  : string
   whatsapp : string
   password : string
@@ -6,6 +7,9 @@ export interface IUser {
   isActive: Boolean 
   webhookUrl: string
   retentionDays:  number
+  createdAt: string
+  planId: number
+  updatedAt: string
 }
 
 export interface ILoginResponse {
