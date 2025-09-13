@@ -11,7 +11,8 @@ class ApiClient {
       throw new Error('NEXT_PUBLIC_API_HOST is not defined')
     
     this.client = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_HOST
+      baseURL: process.env.NEXT_PUBLIC_API_HOST,
+      httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
     })
   }
 
