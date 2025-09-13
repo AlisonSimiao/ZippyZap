@@ -4,9 +4,11 @@ import { signOut, useSession } from 'next-auth/react'
 import { Button } from '../ui/button'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { LogOut, User } from 'lucide-react'
+import { IUser } from '@/types/user.types'
 
 export const DashboardHeader: React.FC = () => {
   const { data: session } = useSession()
+  const user = session?.user as IUser
 
   const handleLogout = () => {
     signOut({ callbackUrl: '/login' })
@@ -27,7 +29,7 @@ export const DashboardHeader: React.FC = () => {
               </AvatarFallback>
             </Avatar>
             <span className="text-sm font-medium">
-              {session?.user?.email || 'Usuário'}
+              {session?.user?.name || 'Usuário'}
             </span>
           </div>
           
