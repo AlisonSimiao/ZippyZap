@@ -1,10 +1,11 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { cloneElement, isValidElement, ReactNode } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { HEADERS } from '@/components/Header'
+import { AuthProvider } from '@/hooks/useAuth'
 
 interface PrivateLayoutProps {
   children: ReactNode
@@ -28,12 +29,16 @@ export default function PrivateLayout({ children }: PrivateLayoutProps) {
     return null
   }
 
+  const accessToken = (session as unknown as {accessToken: string}).accessToken
+
   return (
     <div className="min-h-screen bg-gray-50">
       <HEADERS.DashboardHeader />
+      <AuthProvider accessToken={accessToken}>
       <div className="flex">
         {children}
       </div>
+      </AuthProvider>
     </div>
   )
 }

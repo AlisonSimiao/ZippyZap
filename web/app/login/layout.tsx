@@ -9,7 +9,7 @@ interface Props {
 
 const SignInLayout: React.FC<Props> = async ({children}) => {
     const session = await getServerSession(authOptions);
-    
+
     if (session) {
         return redirect('/dashboard')
     }

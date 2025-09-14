@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,64 +17,26 @@ import {
   Activity
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { api } from '@/lib/api'
+import { useAuth } from '@/hooks/useAuth'
+import { IApikey } from '@/types/apikey'
+import { format } from 'date-fns'
+import { CreateApiKeyModal } from '@/components/modals/CreateApiKeyModal'
 
 export default function ApiKeysPage() {
-  const [apiKeys, setApiKeys] = useState([
-    { 
-      id: 1, 
-      name: 'Produção', 
-      key: 'zapi_prod_abc123def456ghi789jkl012mno345pqr678stu901vwx234yz', 
-      created: '10/09/2025',
-      lastUsed: '11/09/2025',
-      usage24h: 247,
-      status: 'active'
-    },
-    { 
-      id: 2, 
-      name: 'Desenvolvimento', 
-      key: 'zapi_dev_xyz789abc123def456ghi789jkl012mno345pqr678stu901vw', 
-      created: '08/09/2025',
-      lastUsed: '10/09/2025',
-      usage24h: 89,
-      status: 'active'
-    }
-  ])
-  const [showKeys, setShowKeys] = useState<{[key: number]: boolean}>({})
-  const [newKeyName, setNewKeyName] = useState('')
+  const { accessToken } = useAuth()
+  const [apiKeys, setApiKeys] = useState<IApikey[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success('API Key copiada!', { position: 'top-right' })
-  }
-
-  const toggleKeyVisibility = (id: number) => {
-    setShowKeys(prev => ({ ...prev, [id]: !prev[id] }))
-  }
-
-  const maskKey = (key: string) => {
-    return key.substring(0, 12) + '...' + key.substring(key.length - 8)
-  }
-
-  const createApiKey = () => {
-    if (!newKeyName) return
-    const newKey = {
-      id: Date.now(),
-      name: newKeyName,
-      key: `zapi_${newKeyName.toLowerCase()}_${Math.random().toString(36).substr(2, 45)}`,
-      created: new Date().toLocaleDateString('pt-BR'),
-      lastUsed: 'Nunca',
-      usage24h: 0,
-      status: 'active' as const
-    }
-    setApiKeys([...apiKeys, newKey])
-    setNewKeyName('')
-    toast.success('API Key criada com sucesso!', { position: 'top-right' })
-  }
-
-  const deleteApiKey = (id: number) => {
-    setApiKeys(apiKeys.filter(key => key.id !== id))
-    toast.success('API Key removida com sucesso!', { position: 'top-right' })
-  }
+  useEffect(() => {
+    api.getApiKeys(accessToken)
+    .then(data => {
+      setApiKeys(data)
+    })
+    .catch(error => {
+      console.error('Error fetching API keys:', error)
+    })
+  }, [])
 
   return (
     <>
@@ -87,7 +49,7 @@ export default function ApiKeysPage() {
               <h1 className="text-2xl font-bold mb-2">API Keys</h1>
               <p className="text-gray-600">Manage your project API keys. Remember to keep your API keys safe to prevent unauthorized access.</p>
             </div>
-            <Button onClick={() => setNewKeyName('Nova API Key')} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />
               Create API Key
             </Button>
@@ -116,7 +78,7 @@ export default function ApiKeysPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">API Calls (24h)</p>
-                    <p className="text-2xl font-bold">{apiKeys.reduce((sum, key) => sum + key.usage24h, 0)}</p>
+                    <p className="text-2xl font-bold">{0 /** uso no dia */}</p>
                   </div>
                 </div>
               </CardContent>
@@ -129,39 +91,12 @@ export default function ApiKeysPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Active Keys</p>
-                    <p className="text-2xl font-bold">{apiKeys.filter(key => key.status === 'active').length}</p>
+                    <p className="text-2xl font-bold">{apiKeys.filter(key => key.status === 'ACTIVE').length}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-
-          {/* Create API Key Form */}
-          {newKeyName && (
-            <Card className="border-blue-200 bg-blue-50/50">
-              <CardHeader>
-                <CardTitle>Criar Nova API Key</CardTitle>
-                <CardDescription>Crie uma nova chave para suas integrações</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-4">
-                  <Input
-                    placeholder="Nome da API Key"
-                    value={newKeyName}
-                    onChange={(e) => setNewKeyName(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button onClick={createApiKey} disabled={!newKeyName}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Criar
-                  </Button>
-                  <Button variant="outline" onClick={() => setNewKeyName('')}>
-                    Cancelar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* API Keys Table */}
           <Card>
@@ -190,30 +125,22 @@ export default function ApiKeysPage() {
                         <td className="p-4">
                           <div className="flex items-center gap-2">
                             <code className="bg-gray-100 px-3 py-1 rounded text-sm font-mono">
-                              {showKeys[apiKey.id] ? apiKey.key : maskKey(apiKey.key)}
+                              {'scbacbakscb'}
                             </code>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => toggleKeyVisibility(apiKey.id)}
-                              className="h-8 w-8 p-0"
-                            >
-                              {showKeys[apiKey.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => copyToClipboard(apiKey.key)}
+                              onClick={() => {}}
                               className="h-8 w-8 p-0"
                             >
                               <Copy className="h-4 w-4" />
                             </Button>
                           </div>
                         </td>
-                        <td className="p-4 text-gray-600">{apiKey.created}</td>
-                        <td className="p-4 text-gray-600">{apiKey.lastUsed}</td>
+                        <td className="p-4 text-gray-600">{format(new Date(apiKey.createdAt), 'dd-mm-yyyy')}</td>
+                        <td className="p-4 text-gray-600">{Date.now()}</td>
                         <td className="p-4">
-                          <span className="text-sm font-medium">{apiKey.usage24h} API Calls</span>
+                          <span className="text-sm font-medium">{0} API Calls</span>
                         </td>
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-2">
@@ -227,7 +154,7 @@ export default function ApiKeysPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => deleteApiKey(apiKey.id)}
+                              onClick={() => apiKey.id}
                               className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -243,6 +170,17 @@ export default function ApiKeysPage() {
           </Card>
         </div>
       </div>
+      
+      <CreateApiKeyModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          api.getApiKeys(accessToken)
+            .then(data => setApiKeys(data))
+            .catch(error => console.error('Error fetching API keys:', error))
+        }}
+        accessToken={accessToken}
+      />
     </>
   )
 }

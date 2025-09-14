@@ -4,6 +4,7 @@ import { Playfair_Display, Source_Sans_3 } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "react-hot-toast"
 import { Providers } from "../components/providers"
+import { Analytics } from "@vercel/analytics/next"
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -39,7 +40,8 @@ export default function RootLayout({
     <html lang="pt-BR" className={`${playfairDisplay.variable} ${sourceSans.variable} antialiased`}>
       <body className="font-sans">
         <Providers>
-          {children}
+          <Analytics />
+            {children}
           <Toaster />
         </Providers>
       </body>

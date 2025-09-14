@@ -149,6 +149,9 @@ func main() {
                   width={600}
                   height={400}
                   className="w-full h-auto rounded-lg"
+                  priority
+                  placeholder="blur"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                 />
                 <div className="absolute top-4 right-4 bg-[#25D366] text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
@@ -311,7 +314,7 @@ func main() {
                 </div>
               </div>
               <pre className="bg-white p-4 rounded-lg overflow-auto border border-gray-200 shadow-sm">
-                <code className="text-[#333333]">{examples[activeTab]}</code>
+                <code className="text-[#333333]">{examples[activeTab as keyof typeof examples]}</code>
               </pre>
             </div>
 

@@ -1,3 +1,4 @@
+import { IApikey } from '@/types/apikey'
 import { IPlan } from '@/types/plan.types'
 import { ILogin, ILoginResponse } from '@/types/user.types'
 import axios, { AxiosInstance } from 'axios'
@@ -36,6 +37,22 @@ class ApiClient {
    return this.client.post<ILoginResponse>('auth/signin', { email, password })
     .then(({data}) => data)
 
+  }
+
+  async getApiKeys(accessToken: string): Promise<IApikey[]> {
+    return this.client.get<IApikey[]>('/api-keys', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    }).then(({data}) => data)
+  }
+
+  async createApiKey(accessToken: string, input: { name: string; status: "ACTIVE" | "REVOKED" }) {
+    return this.client.post('/api-keys', input, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    }).then(({data}) => data)
   }
 }
 
