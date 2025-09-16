@@ -30,6 +30,9 @@ export const metadata: Metadata = {
   robots: "index, follow",
   generator: "Next.js",
   metadataBase: new URL('https://zippy-zap.vercel.app'),
+  verification: {
+    google: 'OMCTgJ-OAioJ_SfRNFX7-kpzt6WnOeDXsMHp7aiCpLw',
+  },
   alternates: {
     canonical: '/',
   },
