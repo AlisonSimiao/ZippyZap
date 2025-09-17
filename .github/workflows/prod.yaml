@@ -34,17 +34,14 @@ jobs:
           script: |
             cd /home/ubuntu/zap/backend/DOCKER
             
-            # Create SSL directories if not exist
-            mkdir -p certbot/conf certbot/www
-            
             # Stop containers
             sudo docker-compose down
             
-            # Initialize SSL if certificates don't exist
-            if [ ! -f "ssl/fullchain.pem" ]; then
-              chmod +x init-letsencrypt.sh
-              ./init-letsencrypt.sh
-            fi
+            # Make scripts executable
+            chmod +x init-letsencrypt.sh renew-cert.sh
+            
+            # Initialize SSL certificates
+            ./init-letsencrypt.sh
             
             # Start all services
             sudo docker-compose up -d --build
