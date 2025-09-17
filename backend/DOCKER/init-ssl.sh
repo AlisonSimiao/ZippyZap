@@ -6,7 +6,7 @@ echo "🔐 Initializing SSL certificates..."
 mkdir -p certbot/www certbot/conf ssl
 
 # Stop any running containers
-docker compose down
+docker-compose down
 
 # Start nginx without SSL first
 echo "📝 Creating temporary nginx config..."
@@ -46,14 +46,14 @@ cp nginx-temp.conf nginx.conf
 
 # Start services
 echo "🚀 Starting services with HTTP only..."
-docker compose up -d api proxy
+docker-compose up -d api proxy
 
 # Wait for nginx to start
 sleep 10
 
 # Get certificate
 echo "📜 Requesting SSL certificate..."
-docker compose run --rm certbot certonly \
+docker-compose run --rm certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
     --email alison.simiao@gmail.com \
@@ -72,8 +72,8 @@ cp nginx.conf.backup nginx.conf
 
 # Restart with SSL
 echo "🔄 Restarting with SSL..."
-docker compose down
-docker compose up -d
+docker-compose down
+docker-compose up -d
 
 echo "✅ SSL setup complete!"
 echo "🌐 Your site should now be available at: https://zippy-zap.duckdns.org"

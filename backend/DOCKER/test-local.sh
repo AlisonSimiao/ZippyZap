@@ -17,7 +17,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 
 # Start services
 echo "🚀 Starting services..."
-docker compose up -d --build
+docker-compose up -d --build
 
 # Wait for services to start
 echo "⏳ Waiting for services to start..."

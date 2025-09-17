@@ -107,7 +107,7 @@ graph TB
 
 ### Pré-requisitos
 - Node.js 20+
-- Docker & Docker Compose
+- Docker & docker-compose
 - Git
 
 ### 1. Clone o repositório
@@ -148,7 +148,7 @@ MP_ACCESS_TOKEN="your-mercadopago-token"
 PORT=8080
 ```
 
-#### Docker Compose
+#### docker-compose
 ```yaml
 services:
   api:
