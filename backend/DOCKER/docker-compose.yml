@@ -34,27 +34,3 @@ services:
   #     - REDIS_PORT=17498
   #     - REDIS_USER=default
 
-  proxy:
-    image: nginx:alpine
-    container_name: nginx_proxy
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./ssl:/etc/nginx/ssl
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    depends_on:
-      - api
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    command: certonly --webroot --webroot-path=/var/www/certbot --email admin@zippy-zap.duckdns.org --agree-tos --no-eff-email -d zippy-zap.duckdns.org
-
-
