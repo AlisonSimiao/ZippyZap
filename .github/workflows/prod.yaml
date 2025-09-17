@@ -35,16 +35,10 @@ jobs:
             cd /home/ubuntu/zap/backend/DOCKER
             
             # Stop containers
-            sudo docker-compose down
-            
-            # Make scripts executable
-            chmod +x init-letsencrypt.sh renew-cert.sh
-            
-            # Initialize SSL certificates
-            ./init-letsencrypt.sh
+            sudo docker compose down
             
             # Start all services
-            sudo docker-compose up -d --build
+            sudo docker compose up -d --build
             
             # Cleanup
             sudo docker image prune -f
