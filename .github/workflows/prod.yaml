@@ -34,11 +34,24 @@ jobs:
           script: |
             cd /home/ubuntu/zap/backend/DOCKER
             
-            # Stop containers
-            sudo docker-compose down
+            # Make scripts executable
+            chmod +x update-duckdns.sh setup-ssl.sh
             
-            # Start all services
-            sudo docker-compose up -d --build
+            # Check if SSL certificates exist
+            if [ ! -d "./certbot/conf/live/zippy-zap.duckdns.org" ]; then
+              echo "🔐 Setting up SSL for first time..."
+              ./setup-ssl.sh
+            else
+              echo "🔄 SSL exists, doing regular deploy..."
+              # Stop containers
+              sudo docker compose down
+              
+              # Start all services
+              sudo docker compose up -d --build
+            fi
             
             # Cleanup
             sudo docker image prune -f
+            
+            echo "✅ Deploy complete!"
+            echo "🌐 Site: https://zippy-zap.duckdns.org"
