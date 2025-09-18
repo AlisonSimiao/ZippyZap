@@ -34,32 +34,18 @@ jobs:
           script: |
             cd /home/ubuntu/zap/backend/DOCKER
             
-            # Stop containers
-            sudo docker-compose down
-            
-            # Create directories
-            mkdir -p ssl certbot/www certbot/conf
-            
             # Make scripts executable
-            chmod +x init-letsencrypt.sh renew-cert.sh
+            chmod +x init-letsencrypt.sh renew-cert.sh setup-letsencrypt.sh
             
-            # Generate SSL certificates BEFORE starting nginx
-            ./init-letsencrypt.sh
-            
-            # Verify certificates exist
-            if [ ! -f "ssl/fullchain.pem" ] || [ ! -f "ssl/privkey.pem" ]; then
-              echo "❌ SSL certificates not found, creating emergency certificates..."
-              openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-                -keyout ssl/privkey.pem \
-                -out ssl/fullchain.pem \
-                -subj "/C=BR/ST=SP/L=SP/O=ZAPI/CN=zippy-zap.duckdns.org"
+            # Check if certificates exist
+            if [ -f "ssl/fullchain.pem" ] && [ -f "ssl/privkey.pem" ]; then
+              echo "🔄 Certificates exist, doing regular deploy..."
+              sudo docker compose down
+              sudo docker compose up -d --build
+            else
+              echo "🔐 First time setup, configuring SSL..."
+              sudo ./setup-letsencrypt.sh
             fi
-            
-            # Start all services
-            sudo docker-compose up -d --build
-            
-            # Try to get Let's Encrypt certificate
-            sudo docker-compose run --rm certbot || echo "Let's Encrypt failed, using self-signed"
             
             # Cleanup
             sudo docker image prune -f
