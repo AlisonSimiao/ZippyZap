@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -41,14 +41,15 @@ enum EStatusApiKey {
 }
 
 model ApiKey {
-  id        Int           @id @default(autoincrement())
-  name      String?       @default(nanoid())
-  hash      String        @unique @default(uuid())
-  userId    Int           @map("user_id")
-  status    EStatusApiKey @default(ACTIVE)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  User      User          @relation(fields: [userId], references: [id])
+  id         Int           @id @default(autoincrement())
+  name       String?       @default(nanoid())
+  hash       String        @unique @default(uuid())
+  userId     Int           @map("user_id")
+  status     EStatusApiKey @default(ACTIVE)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @default(now()) @updatedAt
+  lastUsedAt DateTime      @default(now())
+  User       User          @relation(fields: [userId], references: [id])
 
   @@unique([userId, hash])
   @@map("api_keys")

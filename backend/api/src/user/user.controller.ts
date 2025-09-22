@@ -1,9 +1,11 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginhDto, ResponseLogin } from 'src/auth/dto/login-auth.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from '@prisma/client';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -17,8 +19,12 @@ export class UserController {
     return this.userService.login(loginDto);
   }
 
-  @Post('create-api-key')
-  createAPIKey() {}
+  @Patch()
+  update(@Body() body: UpdateUserDto, @Req() req: Request & { user: User }) {
+    const user = req.user;
+
+    return this.userService.update(body, user.id);
+  }
 
   @Get('whatsapp/qrcode/:userId')
   getWhatsAppQRCode(@Param('userId') userId: string) {

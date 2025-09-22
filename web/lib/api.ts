@@ -33,6 +33,14 @@ class ApiClient {
     return this.client.post('auth/signup', body)
   }
 
+  async updateUser(accessToken: string, body: { email: string; whatsapp: string; name: string, webhookUrl: string, retentionDays: number }) {
+    return this.client.patch('/users', body, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
+  }
+
   async login({ email, password }: ILogin): Promise<ILoginResponse> {
    return this.client.post<ILoginResponse>('auth/signin', { email, password })
     .then(({data}) => data)

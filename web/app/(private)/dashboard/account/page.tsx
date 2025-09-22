@@ -8,10 +8,38 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Sidebar } from '@/components/Sidebar'
 import { useSession } from 'next-auth/react'
 import { IUser } from '@/types/user.types'
+import { api } from '@/lib/api'
+import { useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
 
 export default function AccountPage() {
-  const { data: session } = useSession() 
-  const user = session?.user as unknown as IUser
+  const { data: session, update } = useSession() as unknown as {data: {user: IUser, accessToken: string}, update: () => Promise<void>}
+  const user = session?.user
+  const token = session.accessToken
+  const { toast } = useToast()
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    whatsapp: user?.whatsapp || '',
+    webhookUrl: user?.webhookUrl || '',
+    retentionDays: user?.retentionDays || 0
+  })
+
+  const handleUpdate = async () => {
+    if (!token) return
+    
+    setLoading(true)
+    try {
+      await api.updateUser(token, formData)
+      await update()
+      toast({ title: 'Conta atualizada com sucesso!' })
+    } catch (error) {
+      toast({ title: 'Erro ao atualizar conta', variant: 'destructive' })
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
     <>
       <Sidebar activeTab="account" setActiveTab={() => {}} />
@@ -47,19 +75,31 @@ export default function AccountPage() {
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium">Nome</label>
-                    <Input defaultValue={user?.name || ''} />
+                    <Input 
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Email</label>
-                    <Input defaultValue={user?.email || ''} />
+                    <Input 
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium">WhatsApp</label>
-                    <Input placeholder="+55 11 99999-9999" defaultValue={user?.whatsapp || ''}/>
+                    <Input 
+                      placeholder="+55 11 99999-9999" 
+                      value={formData.whatsapp}
+                      onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
+                    />
                   </div>
                 </div>
                 
-                <Button className="w-full">Salvar Alterações</Button>
+                <Button className="w-full" onClick={handleUpdate} disabled={loading}>
+                  {loading ? 'Salvando...' : 'Salvar Alterações'}
+                </Button>
               </CardContent>
             </Card>
 
@@ -71,12 +111,19 @@ export default function AccountPage() {
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Webhook URL</label>
-                  <Input  defaultValue={user.webhookUrl || ''}/>
+                  <Input 
+                    value={formData.webhookUrl}
+                    onChange={(e) => setFormData(prev => ({ ...prev, webhookUrl: e.target.value }))}
+                  />
                 </div>
                 
                 <div>
                   <label className="text-sm font-medium">Retenção de Dados (dias)</label>
-                  <Input type="number" defaultValue={user.retentionDays || 0} />
+                  <Input 
+                    type="number" 
+                    value={formData.retentionDays}
+                    onChange={(e) => setFormData(prev => ({ ...prev, retentionDays: Number(e.target.value) }))}
+                  />
                 </div>
                 
                 <Separator />
@@ -90,29 +137,6 @@ export default function AccountPage() {
               </CardContent>
             </Card>
           </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Estatísticas de Uso</CardTitle>
-              <CardDescription>Seu consumo atual</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">1,247</div>
-                  <div className="text-sm text-gray-600">Mensagens Enviadas</div>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">98.5%</div>
-                  <div className="text-sm text-gray-600">Taxa de Entrega</div>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">15</div>
-                  <div className="text-sm text-gray-600">Dias Restantes</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </>

@@ -12,6 +12,7 @@ import { LoginhDto, ResponseLogin } from 'src/auth/dto/login-auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RedisService } from 'src/redis/redis.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -99,5 +100,40 @@ export class UserService {
     await this.queue.add('create-user', {
       idUser,
     });
+  }
+
+  async update(body: UpdateUserDto, idUser: number) {
+    await this.testWebhookUrl(body.webhookUrl);
+
+    await this.prisma.user.update({
+      where: {
+        id: idUser,
+      },
+      data: {
+        name: body.name,
+        email: body.email,
+        whatsapp: body.whatsapp,
+        webhookUrl: body.webhookUrl,
+        retentionDays: body.retentionDays,
+      },
+    });
+  }
+
+  async testWebhookUrl(webhookUrl: string) {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'TESTE',
+        payload: {
+          message: 'teste',
+        },
+      }),
+    });
+
+    if (!res.ok || res.status !== 200)
+      throw new ForbiddenException('Webhook URL não tem uma resposta valida');
   }
 }

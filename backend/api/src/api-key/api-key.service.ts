@@ -5,35 +5,53 @@ import {
 } from '@nestjs/common';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { randomBytes, createHash } from 'crypto';
+import { randomBytes } from 'crypto';
 import { UpdateApiKeyDto } from './dto/update-api-key.dto';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class ApiKeyService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
-  generateToken(prefix = 'key') {
+  generateToken(prefix = 'zzw-') {
     return prefix.concat(randomBytes(24).toString('base64'));
   }
 
-  encript(token: string) {
-    return createHash('sha256').update(token).digest('hex');
+  encriptToken(token: string) {
+    const first = token.slice(0, 4);
+    const last = token.slice(-4);
+
+    return (
+      first +
+      Array(24 - (first.length + last.length))
+        .fill('*')
+        .join('') +
+      last
+    );
   }
 
-  paginate() {
-    return this.prisma.apiKey.findMany({
+  async paginate() {
+    const data = await this.prisma.apiKey.findMany({
       select: {
+        hash: true,
         id: true,
         status: true,
         name: true,
         createdAt: true,
       },
     });
+
+    return data.map((item) => ({
+      ...item,
+      hash: this.encriptToken(item.hash),
+    }));
   }
 
   async createApiKey(body: CreateApiKeyDto, userId: number, prefix = '') {
     const token = this.generateToken(prefix);
-    const encriptedToken = this.encript(token);
 
     const apikey =
       body.name &&
@@ -47,7 +65,7 @@ export class ApiKeyService {
     await this.prisma.apiKey.create({
       data: {
         name: prefix.concat(body.name || randomBytes(5).toString('base64')),
-        hash: encriptedToken,
+        hash: token,
         status: body.status,
         userId: userId,
       },
@@ -90,11 +108,9 @@ export class ApiKeyService {
     }
 
     let token: string | undefined;
-    let encriptedToken: string | undefined;
 
     if (body.generateToken) {
       token = this.generateToken();
-      encriptedToken = this.encript(token);
     }
 
     await this.prisma.apiKey.update({
@@ -104,7 +120,7 @@ export class ApiKeyService {
       data: {
         name: body.name,
         status: body.status,
-        hash: encriptedToken,
+        hash: token,
       },
     });
 
@@ -118,16 +134,21 @@ export class ApiKeyService {
       where: { name, userId },
       select: {
         id: true,
+        hash: true,
       },
     });
 
     if (!apikey)
       throw new NotFoundException(`Api key com nome '${name}' não existe`);
 
-    await this.prisma.apiKey.delete({
-      where: {
-        id: apikey.id,
-      },
-    });
+    await this.prisma.apiKey
+      .delete({
+        where: {
+          id: apikey.id,
+        },
+      })
+      .then(async () => {
+        return this.redis.delete(`api-key:${apikey.hash}`);
+      });
   }
 }
