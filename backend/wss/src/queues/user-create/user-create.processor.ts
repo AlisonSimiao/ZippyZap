@@ -2,18 +2,21 @@ import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { WhatsappService } from 'src/whatsapp/whatsapp.service';
+import { EProcessor } from '../types';
 
 interface IJobData {
   idUser: number;
   whatsapp: string;
 }
-@Processor('create-user')
+
+
+@Processor(EProcessor.CREATE_USER)
 export class UserCreate extends WorkerHost {
   constructor(private readonly whatsappService: WhatsappService) {
     super();
   }
 
-  private readonly logger = new Logger(UserCreate.name);
+  private readonly logger = new Logger(EProcessor.CREATE_USER);
 
   async process(job: Job<IJobData>): Promise<any> {
     this.logger.log(`Processing job: ${job.id}`, job.data);

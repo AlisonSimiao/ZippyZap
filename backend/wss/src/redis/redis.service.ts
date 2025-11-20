@@ -9,9 +9,17 @@ export class RedisService {
     RedisService.redisClient ??= new Redis({
       host: 'localhost',
       port: 6379,
+      username: 'default',
+      password: 'redis',
     });
 
-    console.log('Redis connected');
+    RedisService.redisClient.on('error', (error) => {
+      console.error('Redis error:', error);
+    });
+
+    RedisService.redisClient.on('connect', () => {
+      console.log('Redis connected');
+    });
   }
 
   async get(key: string): Promise<string | null> {

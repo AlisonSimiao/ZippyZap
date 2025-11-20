@@ -1,19 +1,16 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable no-dupe-else-if */
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import makeWASocket, {
   DisconnectReason,
-  useMultiFileAuthState,
   fetchLatestBaileysVersion,
+  useMultiFileAuthState,
+  WASocket,
 } from '@whiskeysockets/baileys';
-
-type WASocket = ReturnType<typeof makeWASocket>;
 
 import { Boom } from '@hapi/boom';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { RedisService } from 'src/redis/redis.service';
 import { format } from 'date-fns';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class WhatsappService implements OnModuleInit {
@@ -26,7 +23,7 @@ export class WhatsappService implements OnModuleInit {
   constructor(
     @InjectQueue('create-user') private readonly createUserQueue: Queue,
     private redisService: RedisService,
-  ) {}
+  ) { }
 
   onModuleInit() {
     this.sessions = new Map<string, WASocket>();
@@ -34,7 +31,7 @@ export class WhatsappService implements OnModuleInit {
 
   async createSession(idUser: string) {
     if (!idUser)
-      throw new Error(`tentativa de criar uma sessao sem o idValido`);
+      throw new Error(`tentativa de criar uma sessao com o idValido`);
 
     if (this.sessions.get(idUser)) return;
 
@@ -48,6 +45,9 @@ export class WhatsappService implements OnModuleInit {
       const sock = makeWASocket({
         auth: state,
         version,
+        browser: ['Zapi', 'Chrome', '1.0.0'],
+        printQRInTerminal: false,
+        defaultQueryTimeoutMs: undefined,
       });
 
       sock.ev.on('connection.update', async (update) => {
@@ -68,33 +68,45 @@ export class WhatsappService implements OnModuleInit {
         }
 
         if (connection === 'close') {
+          const statusCode = (lastDisconnect?.error as Boom)?.output
+            ?.statusCode;
           const shouldReconnect =
-            (lastDisconnect?.error as Boom)?.output?.statusCode !==
-            +DisconnectReason.loggedOut;
+            statusCode !== DisconnectReason.loggedOut &&
+            statusCode !== DisconnectReason.connectionClosed;
 
           this.logger.warn(
             `Connection closed for ${idUser}: ${lastDisconnect?.error?.message || 'Unknown error'}, shouldReconnect: ${shouldReconnect}`,
           );
 
           if (shouldReconnect) {
+            const currentRetries = this.retryCount.get(idUser) || 0;
+
+            if (currentRetries < this.MAX_RETRIES) {
+              this.retryCount.set(idUser, currentRetries + 1);
+              this.logger.log(
+                `Reconnecting ${idUser} (Attempt ${currentRetries + 1}/${this.MAX_RETRIES})...`,
+              );
+              setTimeout(() => this.createSession(idUser), this.RETRY_DELAY);
+            } else {
+              this.logger.error(
+                `Max retries reached for ${idUser}. Removing session.`,
+              );
+              this.sessions.delete(idUser);
+              this.retryCount.delete(idUser);
+              // Optional: Notify user or take other action
+            }
+          } else {
             this.sessions.delete(idUser);
-            this.createUserQueue
-              .add('create-user', {
-                idUser,
-              })
-              .then(() => {
-                this.logger.log(`Reconnecting ${idUser}...`);
-              })
-              .catch((error) => {
-                this.logger.error(`Failed to reconnect ${idUser}:`, error);
-              });
+            this.retryCount.delete(idUser);
+            if (statusCode === DisconnectReason.loggedOut) {
+              this.logger.log(`User ${idUser} logged out.`);
+            }
           }
         } else if (connection === 'open') {
           this.logger.log(`Connection opened for ${idUser}`);
+          this.retryCount.delete(idUser); // Reset retry count on successful connection
         } else if (connection === 'connecting') {
           this.logger.log(`Connecting ${idUser}...`);
-        } else if (connection === 'open') {
-          this.logger.log(`Connection opened for ${idUser}`);
         }
       });
 
@@ -108,10 +120,19 @@ export class WhatsappService implements OnModuleInit {
       sock.ev.on('creds.update', saveCreds);
 
       this.sessions.set(idUser, sock);
-      this.retryCount.delete(idUser); // Reset retry count on successful connection
     } catch (error) {
       this.logger.error(`Failed to create session for ${idUser}:`, error);
       throw error;
     }
+  }
+
+  async sendMessage(idUser: string, phone: string, text: string) {
+    const session = this.sessions.get(idUser);
+    if (!session) {
+      throw new Error(`Session not found for user ${idUser}`);
+    }
+
+    const jid = `${phone}@s.whatsapp.net`;
+    await session.sendMessage(jid, { text });
   }
 }

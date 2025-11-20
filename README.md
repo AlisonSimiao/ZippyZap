@@ -107,8 +107,41 @@ graph TB
 
 ### Pré-requisitos
 - Node.js 20+
+- Yarn
 - Docker & docker-compose
 - Git
+
+### Instalação do Node.js, NPM e Yarn
+
+#### Ubuntu/Debian
+```bash
+# Instalar Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Instalar Yarn
+npm install -g yarn
+```
+
+#### macOS
+```bash
+# Com Homebrew
+brew install node yarn
+
+# Ou com MacPorts
+sudo port install nodejs20 +universal
+npm install -g yarn
+```
+
+#### Windows
+```bash
+# Com Chocolatey
+choco install nodejs yarn
+
+# Ou baixe diretamente:
+# Node.js: https://nodejs.org/
+# Yarn: https://yarnpkg.com/
+```
 
 ### 1. Clone o repositório
 ```bash
@@ -121,14 +154,46 @@ cd zapi
 # Backend API
 cp backend/api/.env.example backend/api/.env
 
-# Backend WebSocket
-cp backend/wss/.env.example backend/wss/.env
+# Frontend
+cp web/.env.example web/.env
 ```
 
-### 3. Execute com Docker
+### 3. Instale as dependências
+```bash
+# Backend API
+cd backend/api
+yarn install
+
+# Frontend
+cd ../../web
+yarn install
+```
+
+### 4. Execute os serviços
+
+#### Opção 1: Com Docker (Recomendado)
+```bash
+# Inicie PostgreSQL e Redis
+cd backend/DOCKER
+docker compose up -d postgres redis
+
+# Execute migrações
+cd ../api
+yarn prisma migrate dev
+yarn prisma db seed
+
+# Inicie backend
+yarn start:dev
+
+# Em outro terminal, inicie frontend
+cd ../../web
+yarn dev
+```
+
+#### Opção 2: Docker Completo
 ```bash
 cd backend/DOCKER
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ## ⚙️ Configuração
@@ -303,8 +368,57 @@ on:
 ### Deploy Manual na VPS
 ```bash
 cd ~/zap/backend/DOCKER
-sudo docker-compose down
-sudo docker-compose up -d --build
+sudo docker compose down
+sudo docker compose up -d --build
+```
+
+## 🔧 Desenvolvimento
+
+### Executando Backend
+```bash
+cd backend/api
+
+# Desenvolvimento
+yarn start:dev
+
+# Produção
+yarn build
+yarn start:prod
+
+# Testes
+yarn test
+```
+
+### Executando Frontend
+```bash
+cd web
+
+# Desenvolvimento
+yarn dev
+
+# Build para produção
+yarn build
+yarn start
+
+# Linting
+yarn lint
+```
+
+### Banco de Dados
+```bash
+cd backend/api
+
+# Aplicar migrações
+yarn prisma migrate dev
+
+# Reset do banco
+yarn prisma migrate reset
+
+# Visualizar dados
+yarn prisma studio
+
+# Gerar cliente
+yarn prisma generate
 ```
 
 ## 📊 Monitoramento
