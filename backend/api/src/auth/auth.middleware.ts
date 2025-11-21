@@ -4,7 +4,7 @@ import {
   NestMiddleware,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -20,6 +20,7 @@ export class AuthMiddleware implements NestMiddleware {
     res: Response,
     next: () => void,
   ) {
+    try {
     const token = req.headers.authorization?.split(' ')[1] as string;
 
     if (!token) throw new ForbiddenException('Token not found');
@@ -42,5 +43,9 @@ export class AuthMiddleware implements NestMiddleware {
     (req as { user: Record<string, any> }).user = user;
 
     next();
+  } catch(err) {
+      console.log(err.message)
+      throw new UnauthorizedException()
+  }
   }
 }

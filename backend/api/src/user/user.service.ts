@@ -21,7 +21,7 @@ export class UserService {
     private jwtService: JwtService,
     @InjectQueue('create-user') private queue: Queue,
     private redisService: RedisService,
-  ) {}
+  ) { }
 
   async login(body: LoginhDto): Promise<ResponseLogin> {
     const user = await this.prisma.user.findUnique({
@@ -75,6 +75,11 @@ export class UserService {
         email: createUserDto.email,
         whatsapp: createUserDto.whatsapp,
         password: hashedPassword,
+        Plan: {
+          connect: {
+            name: 'Gratuito',
+          },
+        },
       },
       select: {
         id: true,
@@ -84,7 +89,7 @@ export class UserService {
   }
 
   async getWhatsAppQRCode(idUser: string): Promise<string> {
-    const qr = await this.redisService.get(`qrCode:${idUser}`);
+    const qr = await this.redisService.get(`user:${idUser}:qrcode`);
 
     if (!qr) {
       throw new NotFoundException(

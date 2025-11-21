@@ -33,4 +33,12 @@ export class RedisService {
   async publish(chanel: string, data: string) {
     return RedisService.redisClient.publish(chanel, data);
   }
+
+  async del(key: string) {
+    return RedisService.redisClient.del(key);
+  }
+
+  async keys(pattern: string): Promise<string[]> {
+    return RedisService.redisClient.keys(pattern);
+  }
 }

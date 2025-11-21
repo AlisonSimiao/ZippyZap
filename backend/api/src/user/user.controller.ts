@@ -25,14 +25,4 @@ export class UserController {
 
     return this.userService.update(body, user.id);
   }
-
-  @Get('whatsapp/qrcode/:userId')
-  getWhatsAppQRCode(@Param('userId') userId: string) {
-    return this.userService.getWhatsAppQRCode(userId);
-  }
-
-  @Post('whatsapp/session')
-  createWhatsAppSession(@Body('userId') userId: string) {
-    return this.userService.createWhatsAppSession(userId);
-  }
 }

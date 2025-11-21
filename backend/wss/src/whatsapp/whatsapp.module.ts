@@ -1,8 +1,7 @@
-import { Module } from '@nestjs/common';
-import { WhatsappService } from './whatsapp.service';
-import { WhatsappController } from './whatsapp.controller';
 import { BullModule } from '@nestjs/bullmq';
+import { Module } from '@nestjs/common';
 import { RedisService } from 'src/redis/redis.service';
+import { WhatsappService } from './whatsapp.service';
 
 @Module({
   imports: [
@@ -10,7 +9,7 @@ import { RedisService } from 'src/redis/redis.service';
       name: 'create-user',
     }),
   ],
-  controllers: [WhatsappController],
+  controllers: [],
   providers: [RedisService, WhatsappService],
   exports: [WhatsappService],
 })

@@ -10,7 +10,7 @@ class ValidationError extends HttpException {
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
-  console.log(process.env.DATABASE_URL);
+
   app.useGlobalPipes(
     new ValidationPipe({
       errorHttpStatusCode: 422,
@@ -26,7 +26,7 @@ async function bootstrap(): Promise<void> {
 
   app.enableCors({
     origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: 'GET,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });
