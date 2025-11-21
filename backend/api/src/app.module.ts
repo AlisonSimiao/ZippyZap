@@ -17,6 +17,8 @@ import { WebhookController } from './webhook/webhook.controller';
 import { WebhookModule } from './webhook/webhook.module';
 import { AuthMiddleware } from './auth/auth.middleware';
 import { ApiKeyModule } from './api-key/api-key.module';
+import { WhatsappModule } from './whatsapp/whatsapp.module';
+import { QueueBoardModule } from './queue-board/queue-board.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { ApiKeyModule } from './api-key/api-key.module';
     PaymentModule,
     WebhookModule,
     ApiKeyModule,
+    WhatsappModule,
+    QueueBoardModule,
   ],
   controllers: [AppController, WebhookController],
   providers: [AppService],
@@ -50,9 +54,10 @@ export class AppModule implements NestModule {
       .apply(AuthMiddleware)
       .exclude(
         { path: '/', method: RequestMethod.GET },
-        { path: '/auth/(.*)', method: RequestMethod.POST },
+        { path: '/auth/*path', method: RequestMethod.POST },
         { path: '/plans', method: RequestMethod.GET },
         { path: '/health', method: RequestMethod.GET },
+        { path: '/whatsapp/*path', method: RequestMethod.ALL }
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
