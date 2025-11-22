@@ -9,6 +9,7 @@ import { PricingSection } from "@/components/pricing-section"
 import { HEADERS } from "@/components/Header"
 import Image from "next/image"
 import Link from "next/link"
+import { CodeBlock } from "@/components/ui/code-block"
 
 function CodeExamples() {
   const examples = {
@@ -269,8 +270,8 @@ func main() {
                     size="sm"
                     onClick={() => setActiveTab("curl")}
                     className={`text-xs ${activeTab === "curl"
-                        ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
-                        : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
+                      ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
+                      : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
                       }`}
                   >
                     cURL
@@ -280,8 +281,8 @@ func main() {
                     size="sm"
                     onClick={() => setActiveTab("node")}
                     className={`text-xs ${activeTab === "node"
-                        ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
-                        : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
+                      ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
+                      : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
                       }`}
                   >
                     Node.js
@@ -291,8 +292,8 @@ func main() {
                     size="sm"
                     onClick={() => setActiveTab("python")}
                     className={`text-xs ${activeTab === "python"
-                        ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
-                        : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
+                      ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
+                      : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
                       }`}
                   >
                     Python
@@ -302,17 +303,19 @@ func main() {
                     size="sm"
                     onClick={() => setActiveTab("go")}
                     className={`text-xs ${activeTab === "go"
-                        ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
-                        : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
+                      ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
+                      : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
                       }`}
                   >
                     Go
                   </Button>
                 </div>
               </div>
-              <pre className="bg-white p-4 rounded-lg overflow-auto border border-gray-200 shadow-sm">
-                <code className="text-[#333333]">{examples[activeTab as keyof typeof examples]}</code>
-              </pre>
+              <CodeBlock
+                code={examples[activeTab as keyof typeof examples]}
+                language={activeTab === "curl" ? "bash" : activeTab === "go" ? "go" : activeTab === "python" ? "python" : "javascript"}
+                className="border border-gray-200 shadow-sm"
+              />
             </div>
 
             <div className="space-y-6">

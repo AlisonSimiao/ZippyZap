@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Code } from 'lucide-react';
+import { CodeBlock } from '@/components/ui/code-block';
 
 export default function ApiReference() {
     const apiRoutes = [
@@ -145,9 +146,7 @@ export default function ApiReference() {
                             {route.response && (
                                 <div>
                                     <h4 className="font-semibold text-[#333333] mb-3">Response</h4>
-                                    <pre className="bg-[#1e1e1e] text-white p-4 rounded-lg overflow-auto text-sm">
-                                        <code>{route.response}</code>
-                                    </pre>
+                                    <CodeBlock code={route.response} language="json" />
                                 </div>
                             )}
                         </CardContent>

@@ -26,19 +26,13 @@ import {
     Key,
     Search
 } from "lucide-react"
-import { useState } from "react"
+
 import { HEADERS } from "@/components/Header"
 import ApiReference from "../components/ApiReference"
 import Link from "next/link"
+import { CodeBlock } from "@/components/ui/code-block"
 
 export default function DocsPage() {
-    const [copiedCode, setCopiedCode] = useState<string | null>(null)
-
-    const copyToClipboard = (code: string, id: string) => {
-        navigator.clipboard.writeText(code)
-        setCopiedCode(id)
-        setTimeout(() => setCopiedCode(null), 2000)
-    }
 
     const codeExamples = {
         sendMessage: `curl -X POST https://api.zippyzap.com/v1/messages \\
@@ -446,22 +440,9 @@ send_whatsapp_message()`,
                                         No dashboard, acesse a seção "API Keys" e gere uma nova chave. Guarde-a em local seguro,
                                         pois ela será necessária para todas as chamadas à API.
                                     </p>
-                                    <div className="bg-[#F5F5F5] p-4 rounded-lg border border-gray-200">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-sm font-medium text-[#333333]">Exemplo de API Key:</span>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => copyToClipboard("zapi_live_abc123def456ghi789", "apikey")}
-                                            >
-                                                {copiedCode === "apikey" ? (
-                                                    <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                ) : (
-                                                    <Copy className="w-4 h-4" />
-                                                )}
-                                            </Button>
-                                        </div>
-                                        <code className="text-sm text-[#333333]/80">zapi_live_abc123def456ghi789</code>
+                                    <div className="space-y-2">
+                                        <span className="text-sm font-medium text-[#333333]">Exemplo de API Key:</span>
+                                        <CodeBlock code="zapi_live_abc123def456ghi789" language="bash" />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -517,63 +498,15 @@ send_whatsapp_message()`,
                                         </TabsList>
 
                                         <TabsContent value="curl">
-                                            <div className="relative">
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    className="absolute top-2 right-2 z-10"
-                                                    onClick={() => copyToClipboard(codeExamples.sendMessage, "curl")}
-                                                >
-                                                    {copiedCode === "curl" ? (
-                                                        <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                    ) : (
-                                                        <Copy className="w-4 h-4" />
-                                                    )}
-                                                </Button>
-                                                <pre className="bg-[#1e1e1e] text-white p-4 rounded-lg overflow-auto">
-                                                    <code className="text-sm">{codeExamples.sendMessage}</code>
-                                                </pre>
-                                            </div>
+                                            <CodeBlock code={codeExamples.sendMessage} language="bash" />
                                         </TabsContent>
 
                                         <TabsContent value="node">
-                                            <div className="relative">
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    className="absolute top-2 right-2 z-10"
-                                                    onClick={() => copyToClipboard(codeExamples.nodeExample, "node")}
-                                                >
-                                                    {copiedCode === "node" ? (
-                                                        <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                    ) : (
-                                                        <Copy className="w-4 h-4" />
-                                                    )}
-                                                </Button>
-                                                <pre className="bg-[#1e1e1e] text-white p-4 rounded-lg overflow-auto">
-                                                    <code className="text-sm">{codeExamples.nodeExample}</code>
-                                                </pre>
-                                            </div>
+                                            <CodeBlock code={codeExamples.nodeExample} language="javascript" />
                                         </TabsContent>
 
                                         <TabsContent value="python">
-                                            <div className="relative">
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    className="absolute top-2 right-2 z-10"
-                                                    onClick={() => copyToClipboard(codeExamples.pythonExample, "python")}
-                                                >
-                                                    {copiedCode === "python" ? (
-                                                        <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                    ) : (
-                                                        <Copy className="w-4 h-4" />
-                                                    )}
-                                                </Button>
-                                                <pre className="bg-[#1e1e1e] text-white p-4 rounded-lg overflow-auto">
-                                                    <code className="text-sm">{codeExamples.pythonExample}</code>
-                                                </pre>
-                                            </div>
+                                            <CodeBlock code={codeExamples.pythonExample} language="python" />
                                         </TabsContent>
                                     </Tabs>
                                 </CardContent>
@@ -709,23 +642,7 @@ send_whatsapp_message()`,
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="relative">
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="absolute top-2 right-2 z-10"
-                                            onClick={() => copyToClipboard(codeExamples.webhookExample, "webhook")}
-                                        >
-                                            {copiedCode === "webhook" ? (
-                                                <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            ) : (
-                                                <Copy className="w-4 h-4" />
-                                            )}
-                                        </Button>
-                                        <pre className="bg-[#1e1e1e] text-white p-4 rounded-lg overflow-auto">
-                                            <code className="text-sm">{codeExamples.webhookExample}</code>
-                                        </pre>
-                                    </div>
+                                    <CodeBlock code={codeExamples.webhookExample} language="json" />
                                 </CardContent>
                             </Card>
 
@@ -737,23 +654,7 @@ send_whatsapp_message()`,
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="relative">
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="absolute top-2 right-2 z-10"
-                                            onClick={() => copyToClipboard(codeExamples.webhookHandler, "handler")}
-                                        >
-                                            {copiedCode === "handler" ? (
-                                                <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            ) : (
-                                                <Copy className="w-4 h-4" />
-                                            )}
-                                        </Button>
-                                        <pre className="bg-[#1e1e1e] text-white p-4 rounded-lg overflow-auto">
-                                            <code className="text-sm">{codeExamples.webhookHandler}</code>
-                                        </pre>
-                                    </div>
+                                    <CodeBlock code={codeExamples.webhookHandler} language="javascript" />
                                 </CardContent>
                             </Card>
                         </div>
