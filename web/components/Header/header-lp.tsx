@@ -11,15 +11,18 @@ export const HeaderLp: React.FC = () => {
     <header className="border-b border-gray-200 bg-[#333333] sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Logo />
-        
+
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
           <a href="#features" className="text-white/80 hover:text-white transition-colors">
             Recursos
           </a>
-          <a href="#docs" className="text-white/80 hover:text-white transition-colors">
+          <Link href="/docs" className="text-white/80 hover:text-white transition-colors">
             Documentação
-          </a>
+          </Link>
+          <Link href="/docs#api-reference" className="text-white/80 hover:text-white transition-colors">
+            API Reference
+          </Link>
           <a href="#pricing" className="text-white/80 hover:text-white transition-colors">
             Preços
           </a>
@@ -52,22 +55,29 @@ export const HeaderLp: React.FC = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-[#333333] border-t border-gray-600">
           <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
-            <a 
-              href="#features" 
+            <a
+              href="#features"
               className="text-white/80 hover:text-white transition-colors py-2"
               onClick={() => setIsMenuOpen(false)}
             >
               Recursos
             </a>
-            <a 
-              href="#docs" 
+            <Link
+              href="/docs"
               className="text-white/80 hover:text-white transition-colors py-2"
               onClick={() => setIsMenuOpen(false)}
             >
               Documentação
-            </a>
-            <a 
-              href="#pricing" 
+            </Link>
+            <Link
+              href="/docs#api-reference"
+              className="text-white/80 hover:text-white transition-colors py-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              API Reference
+            </Link>
+            <a
+              href="#pricing"
               className="text-white/80 hover:text-white transition-colors py-2"
               onClick={() => setIsMenuOpen(false)}
             >

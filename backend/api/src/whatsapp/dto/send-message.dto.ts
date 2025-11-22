@@ -1,12 +1,23 @@
-import { IsMobilePhone, IsNotEmpty, IsPassportNumber, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+
+enum EType {
+    TEXT = 'text',
+    IMAGE = 'image',
+    DOCUMENT = 'document',
+    AUDIO = 'audio',
+    VIDEO = 'video',
+}
 
 export class SendMessageDto {
-    @IsString()
     @IsNotEmpty()
-    @IsMobilePhone('pt-BR')
-    phone: string;
+    @IsString()
+    to: string
 
-    @IsString()
     @IsNotEmpty()
-    text: string;
+    @IsEnum(EType)
+    type: EType
+
+    @IsNotEmpty()
+    @IsString()
+    message: string
 }

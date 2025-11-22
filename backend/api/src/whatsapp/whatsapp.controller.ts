@@ -16,7 +16,7 @@ export class WhatsappController {
         @Body() body: SendMessageDto,
         @Req() req: Request & { apiKey: { userId: number } },
     ) {
-        const { phone, text } = body;
+        const { to: phone, message: text } = body;
 
         const userId = req.apiKey.userId.toString();
 

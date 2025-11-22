@@ -88,7 +88,7 @@ export class UserService {
     });
   }
 
-  async getWhatsAppQRCode(idUser: string): Promise<string> {
+  async getWhatsAppQRCode(idUser: string): Promise<{ status: string; qr: string }> {
     const qr = await this.redisService.get(`user:${idUser}:qrcode`);
 
     if (!qr) {
@@ -98,13 +98,25 @@ export class UserService {
       );
     }
 
-    return qr;
+    const status = await this.redisService.get(`user:${idUser}:status`) || '';
+
+    return {
+      status,
+      qr
+    };
   }
 
   async createWhatsAppSession(idUser: string) {
     await this.queue.add('create-user', {
       idUser,
     });
+
+    return {
+      "success": true,
+      "sessionId": `session_${idUser}`,
+      "status": "initializing",
+      "message": "Sessão criada. Use /qrcode para obter o QR Code"
+    }
   }
 
   async update(body: UpdateUserDto, idUser: number) {

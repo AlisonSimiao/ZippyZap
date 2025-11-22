@@ -8,6 +8,7 @@ import { useState } from "react"
 import { PricingSection } from "@/components/pricing-section"
 import { HEADERS } from "@/components/Header"
 import Image from "next/image"
+import Link from "next/link"
 
 function CodeExamples() {
   const examples = {
@@ -92,7 +93,7 @@ func main() {
 
   return (
     <div className="min-h-screen bg-white">
-      <HEADERS.HeaderLp />     
+      <HEADERS.HeaderLp />
 
       {/* Hero Section */}
       <section className="py-20 px-4 bg-[#F5F5F5]">
@@ -267,11 +268,10 @@ func main() {
                     variant={activeTab === "curl" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveTab("curl")}
-                    className={`text-xs ${
-                      activeTab === "curl"
+                    className={`text-xs ${activeTab === "curl"
                         ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
                         : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
-                    }`}
+                      }`}
                   >
                     cURL
                   </Button>
@@ -279,11 +279,10 @@ func main() {
                     variant={activeTab === "node" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveTab("node")}
-                    className={`text-xs ${
-                      activeTab === "node"
+                    className={`text-xs ${activeTab === "node"
                         ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
                         : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
-                    }`}
+                      }`}
                   >
                     Node.js
                   </Button>
@@ -291,11 +290,10 @@ func main() {
                     variant={activeTab === "python" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveTab("python")}
-                    className={`text-xs ${
-                      activeTab === "python"
+                    className={`text-xs ${activeTab === "python"
                         ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
                         : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
-                    }`}
+                      }`}
                   >
                     Python
                   </Button>
@@ -303,11 +301,10 @@ func main() {
                     variant={activeTab === "go" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setActiveTab("go")}
-                    className={`text-xs ${
-                      activeTab === "go"
+                    className={`text-xs ${activeTab === "go"
                         ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
                         : "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
-                    }`}
+                      }`}
                   >
                     Go
                   </Button>
@@ -424,14 +421,14 @@ func main() {
               <h4 className="font-semibold text-[#333333] mb-4">Desenvolvedores</h4>
               <ul className="space-y-2 text-sm text-[#333333]/70">
                 <li>
-                  <a href="#" className="hover:text-[#333333] transition-colors">
+                  <Link href="/docs" className="hover:text-[#333333] transition-colors">
                     Documentação
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-[#333333] transition-colors">
+                  <Link href="/docs#api-reference" className="hover:text-[#333333] transition-colors">
                     API Reference
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
