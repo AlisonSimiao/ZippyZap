@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { RedisService } from 'src/redis/redis.service';
@@ -10,8 +10,16 @@ enum EStatusConnction {
 }
 
 @Injectable()
-export class WhatsappService implements OnModuleInit {
-  private sessions: Map<string, wppconnect.Whatsapp>;
+export class WhatsappService implements OnModuleInit, OnModuleDestroy {
+  private sessions = new Map<string, wppconnect.Whatsapp>();
+  private sessionListeners = new Map<string, Function[]>();
+  private messageCooldown = new Map<string, number>();
+  private metrics = {
+    messagesSent: 0,
+    messagesReceived: 0,
+    sessionsCreated: 0,
+    errors: 0
+  };
   private logger = new Logger('WhatsappService');
 
   constructor(
@@ -32,12 +40,20 @@ export class WhatsappService implements OnModuleInit {
           const idUser = key.split(':')[1];
           if (idUser && !this.sessions.has(idUser)) {
             this.logger.log(`Restaurando sessão para usuário ${idUser}...`);
-            await this.createSession(idUser);
+            await this.createUserQueue.add('create-user', {
+              idUser
+            });
           }
         }
       }
     } catch (error) {
       this.logger.error('Erro ao restaurar sessões:', error);
+    }
+  }
+
+  async onModuleDestroy() {
+    for (const idUser of this.sessions.keys()) {
+      await this.destroySession(idUser);
     }
   }
 
@@ -51,7 +67,7 @@ export class WhatsappService implements OnModuleInit {
         session: idUser,
         catchQR: (base64Qr, asciiQR) => {
           this.logger.log(`QR Code gerado para ${idUser}`);
-          console.log(asciiQR); 
+          console.log(asciiQR);
 
           this.redisService.set(
             `user:${idUser}:qrcode`,
@@ -66,6 +82,7 @@ export class WhatsappService implements OnModuleInit {
             this.redisService.set(`user:${idUser}:status`, EStatusConnction.CONNECTED);
           }
         },
+        folderNameToken: 'tokens',
         headless: true,
         devtools: false,
         useChrome: true,
@@ -74,7 +91,7 @@ export class WhatsappService implements OnModuleInit {
         browserArgs: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage', // Reduz uso de memória
+          '--disable-dev-shm-usage',
           '--disable-gpu',
           '--disable-software-rasterizer',
           '--disable-extensions',
@@ -87,56 +104,91 @@ export class WhatsappService implements OnModuleInit {
       });
 
       this.sessions.set(idUser, client);
+      this.metrics.sessionsCreated++;
 
-      client.onMessage(async (msg) => {
-        switch (msg.type) {
-          case wppconnect.MessageType.CHAT: // texto
-            console.log('Texto:', msg.body);
-            break;
-
-          case wppconnect.MessageType.IMAGE:
-            console.log('Imagem com legenda:', msg.caption);
-            break;
-
-          case wppconnect.MessageType.AUDIO: // áudio
-            console.log('Áudio recebido');
-            break;
-
-          case wppconnect.MessageType.VIDEO: // vídeo
-            console.log('Vídeo:', msg.caption);
-            break;
-
-          case wppconnect.MessageType.STICKER: // sticker
-            console.log('Sticker');
-            break;
-
-          case wppconnect.MessageType.BUTTONS_RESPONSE: // botão
-            console.log('Botão clicado:', msg.body);
-            break;
-
-          case wppconnect.MessageType.LIST_RESPONSE: // lista
-            console.log('Lista selecionada:', msg.body);
-            break;
-
-          default:
-            console.log('Tipo de mensagem desconhecido:', msg.type, msg);
-        }
-      });
-
-      client.onStateChange((state) => {
-        this.logger.log(`State changed: ${state}`);
-        if (state === 'CONFLICT' || state === 'UNPAIRED' || state === 'UNLAUNCHED') {
-          this.logger.warn(`Sessão desconectada/conflito: ${state}`);
-          client.close();
-          this.sessions.delete(idUser);
-          this.redisService.del(`user:${idUser}:status`);
-        }
-      });
+      this.registerListeners(idUser, client);
 
     } catch (error) {
       this.logger.error(`Erro ao criar sessão para ${idUser}:`, error);
+      this.metrics.errors++;
       throw error;
     }
+  }
+
+  private registerListeners(idUser: string, client: wppconnect.Whatsapp) {
+    // Message Listener
+    const messageListener = async (msg: wppconnect.Message) => {
+      this.metrics.messagesReceived++;
+      await this.createUserQueue.add('process-message', {
+        sessionId: idUser,
+        message: msg
+      }, {
+        removeOnComplete: true,
+        attempts: 3
+      });
+    };
+
+    // State Change Listener
+    const stateListener = (state: string) => {
+      this.logger.log(`State changed: ${state}`);
+      if (state === 'CONFLICT' || state === 'UNPAIRED' || state === 'UNLAUNCHED') {
+        this.logger.warn(`Sessão desconectada/conflito: ${state}`);
+        this.handleReconnection(idUser);
+      }
+    };
+
+    client.onMessage(messageListener);
+    client.onStateChange(stateListener);
+
+    // Store cleanup functions
+    this.sessionListeners.set(idUser, [
+     messageListener,
+     stateListener
+    ]);
+  }
+
+  private cleanupSession(idUser: string, client: wppconnect.Whatsapp) {
+    const listeners = this.sessionListeners.get(idUser);
+    if (listeners) {
+      listeners.forEach(cleanup => cleanup());
+      this.sessionListeners.delete(idUser);
+    }
+  }
+
+  async destroySession(idUser: string) {
+    const client = this.sessions.get(idUser);
+    if (client) {
+      this.cleanupSession(idUser, client);
+      try {
+        await client.close();
+        await client.logout();
+      } catch (error) {
+        this.logger.warn(`Erro ao destruir sessão ${idUser}:`, error);
+      }
+      this.sessions.delete(idUser);
+      await this.redisService.del(`user:${idUser}:status`);
+      await this.redisService.del(`user:${idUser}:qrcode`);
+    }
+  }
+
+  private async handleReconnection(idUser: string) {
+    this.logger.warn(`Iniciando processo de reconexão para ${idUser}...`);
+
+    try {
+      await this.destroySession(idUser);
+      this.logger.log(`Sessão ${idUser} destruída. Enfileirando recriação...`);
+
+      await this.createUserQueue.add('create-user', {
+        idUser
+      }, { jobId: `create-user-${idUser}`, removeOnComplete: true });
+    } catch (error) {
+      this.logger.error(`Erro ao processar reconexão para ${idUser}:`, error);
+    }
+  }
+
+  private validatePhoneNumber(phone: string): boolean {
+    const phoneRegex = /^[1-9]{2}9[0-9]{8}$/;
+    return phoneRegex.test(phone.replace(/\D/g, ''));
   }
 
   async sendMessage(idUser: string, phone: string, text: string) {
@@ -145,8 +197,43 @@ export class WhatsappService implements OnModuleInit {
       throw new Error(`Sessão não encontrada para o usuário ${idUser}`);
     }
 
-    // WPPConnect uses '5516988532085@c.us' format
+    if (!text || text.trim().length === 0) {
+      throw new Error('Mensagem não pode estar vazia');
+    }
+
+    if (text.length > 4096) {
+      throw new Error('Mensagem muito longa (max 4096 caracteres)');
+    }
+
+    const cooldownKey = `${idUser}:${phone}`;
+    const lastSent = this.messageCooldown.get(cooldownKey) || 0;
+
+    if (Date.now() - lastSent < 1000) {
+      throw new Error('Rate limit exceeded. Wait 1 second between messages.');
+    }
+
     const chatId = `${phone}@c.us`;
     await client.sendText(chatId, text);
+
+    this.messageCooldown.set(cooldownKey, Date.now());
+    this.metrics.messagesSent++;
+  }
+
+  async getSessionHealth(idUser: string): Promise<{ status: string; lastSeen: Date | null }> {
+    const client = this.sessions.get(idUser);
+    if (!client) return { status: 'DISCONNECTED', lastSeen: null };
+
+    const isConnected = await client.isConnected();
+    return {
+      status: isConnected ? 'CONNECTED' : 'DISCONNECTED',
+      lastSeen: new Date()
+    };
+  }
+
+  getMetrics() {
+    return {
+      ...this.metrics,
+      activeSessions: this.sessions.size
+    };
   }
 }

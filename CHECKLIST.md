@@ -40,9 +40,9 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 
 * [x] Criar sessão
 * [x] Ler QR Code
-* [ ] Manter sessão viva com Docker
-* [ ] Verificação automática de reconexão
-* [ ] Persistência simples da sessão (tokens/{user_id})
+* [x] Manter sessão viva com Docker
+* [x] Verificação automática de reconexão
+* [x] Persistência simples da sessão (tokens/{user_id})
 
 ---
 

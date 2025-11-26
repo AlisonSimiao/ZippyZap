@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString, Matches } from 'class-validator';
 
 enum EType {
     TEXT = 'text',
@@ -11,6 +11,7 @@ enum EType {
 export class SendMessageDto {
     @IsNotEmpty()
     @IsString()
+    @Matches(/^[1-9]{2}9[0-9]{8}$/, { message: 'Invalid phone number format' })
     to: string
 
     @IsNotEmpty()
