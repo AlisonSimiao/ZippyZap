@@ -12,13 +12,15 @@ import { Check, Crown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useSession } from 'next-auth/react'
 import { IUser } from '@/types/user.types'
+import { useRouter } from 'next/navigation'
 
 export default function PlansPage() {
   const [plans, setPlans] = useState<IPlan[]>([])
   const [loadingPlans, setLoadingPlans] = useState(true)
-  const {data: session} = useSession()
+  const { data: session } = useSession()
   const user = session?.user as IUser
-  
+  const router = useRouter()
+
   useEffect(() => {
     const fetchPlans = async () => {
       try {
@@ -33,10 +35,14 @@ export default function PlansPage() {
     fetchPlans()
   }, [])
 
+  const handleUpgrade = (planId: number) => {
+    router.push(`/checkout?planId=${planId}`)
+  }
+
   return (
     <>
-      <Sidebar activeTab="plans" setActiveTab={() => {}} />
-      
+      <Sidebar activeTab="plans" setActiveTab={() => { }} />
+
       <div className="flex-1 p-8">
         <div className="space-y-6">
           <div>
@@ -65,60 +71,62 @@ export default function PlansPage() {
           ) : (
             <div className="grid md:grid-cols-3 gap-6">
               {plans.map((plan) => {
-                  const isActive = plan.id === user.planId
-                  return (
-                <Card key={plan.id} className={`relative ${plan.isActive ? 'ring-2 ring-blue-500' : ''}`}>
-                  {plan.id === user.planId && (
-                    <Badge className="absolute -top-2 left-4 bg-blue-500">
-                      Plano Atual
-                    </Badge>
-                  )}
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {plan.name}
-                      {plan.name === 'Enterprise' && <Crown className="h-4 w-4 text-yellow-500" />}
-                    </CardTitle>
-                    <div className="text-3xl font-bold">
-                      R$ {(+plan.price).toFixed(2)}
-                      <span className="text-sm font-normal text-gray-500">/mês</span>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Limite diário:</span>
-                          <span className="font-medium">{plan.dailyLimit?.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Limite mensal:</span>
-                          <span className="font-medium">{plan.monthlyLimit?.toLocaleString()}</span>
-                        </div>
+                const isActive = plan.id === user.planId
+                return (
+                  <Card key={plan.id} className={`relative ${plan.isActive ? 'ring-2 ring-blue-500' : ''}`}>
+                    {plan.id === user.planId && (
+                      <Badge className="absolute -top-2 left-4 bg-blue-500">
+                        Plano Atual
+                      </Badge>
+                    )}
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        {plan.name}
+                        {plan.name === 'Enterprise' && <Crown className="h-4 w-4 text-yellow-500" />}
+                      </CardTitle>
+                      <div className="text-3xl font-bold">
+                        R$ {(+plan.price).toFixed(2)}
+                        <span className="text-sm font-normal text-gray-500">/mês</span>
                       </div>
-                      
-                      <Separator />
-                      
-                      <div className="space-y-2">
-                        {plan.features?.map((feature, index) => (
-                          <div key={index} className="flex items-center gap-2 text-sm">
-                            <Check className="h-4 w-4 text-green-500" />
-                            {feature}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Limite diário:</span>
+                            <span className="font-medium">{plan.dailyLimit?.toLocaleString()}</span>
                           </div>
-                        ))}
+                          <div className="flex justify-between text-sm">
+                            <span>Limite mensal:</span>
+                            <span className="font-medium">{plan.monthlyLimit?.toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        <div className="space-y-2">
+                          {plan.features?.map((feature, index) => (
+                            <div key={index} className="flex items-center gap-2 text-sm">
+                              <Check className="h-4 w-4 text-green-500" />
+                              {feature}
+                            </div>
+                          ))}
+                        </div>
+
+                        <Button
+                          className="w-full"
+                          variant={isActive ? 'secondary' : 'default'}
+                          disabled={isActive}
+                          onClick={() => handleUpgrade(plan.id)}
+                        >
+                          {isActive ? 'Plano Atual' : 'Fazer Upgrade'}
+                        </Button>
                       </div>
-                      
-                      <Button 
-                        className="w-full" 
-                        variant={isActive ? 'secondary' : 'default'}
-                        disabled={isActive}
-                      >
-                        {isActive ? 'Plano Atual' : 'Fazer Upgrade'}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )})
+                    </CardContent>
+                  </Card>
+                )
               }
+              )}
             </div>
           )}
         </div>

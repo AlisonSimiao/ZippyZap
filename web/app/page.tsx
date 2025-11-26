@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MessageSquare, Zap, Shield, Webhook, FileText, Users, ArrowRight, CheckCircle } from "lucide-react"
+import { MessageSquare, Zap, Shield, Webhook, FileText, Users, ArrowRight, CheckCircle, Twitter, Instagram } from "lucide-react"
 import { useState } from "react"
 import { PricingSection } from "@/components/pricing-section"
 import { HEADERS } from "@/components/Header"
@@ -394,9 +394,27 @@ func main() {
                 </div>
                 <span className="text-xl font-serif font-bold text-[#333333]">ZippyZap</span>
               </div>
-              <p className="text-[#333333]/70 text-sm">
+              <p className="text-[#333333]/70 text-sm mb-6">
                 A API WhatsApp mais confiável para desenvolvedores e empresas.
               </p>
+              <div className="flex gap-4">
+                <a
+                  href="https://x.com/zippyzapOfc"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#333333]/70 hover:text-[#333333] transition-colors"
+                >
+                  <Twitter className="w-5 h-5" />
+                </a>
+                <a
+                  href="https://www.instagram.com/zippyzapapi/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#333333]/70 hover:text-[#333333] transition-colors"
+                >
+                  <Instagram className="w-5 h-5" />
+                </a>
+              </div>
             </div>
 
             <div>

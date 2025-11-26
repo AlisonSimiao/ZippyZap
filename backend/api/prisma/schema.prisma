@@ -15,20 +15,22 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  email         String    @unique
-  whatsapp      String    @unique
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  whatsapp      String         @unique
   password      String
   name          String?
-  isActive      Boolean   @default(true)
+  isActive      Boolean        @default(true)
   webhookUrl    String?
-  retentionDays Int       @default(30)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  retentionDays Int            @default(30)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   messages      Message[]
-  Plan          Plan      @relation(fields: [planId], references: [id])
-  planId        Int       @default(1)
+  Plan          Plan           @relation(fields: [planId], references: [id])
+  planId        Int            @default(1)
   ApiKeys       ApiKey[]
+  payments      Payment[]
+  subscriptions Subscription[]
 
   @@map("users")
 }
@@ -90,4 +92,55 @@ enum MessageStatus {
   DELIVERED
   READ
   FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  REFUNDED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model Payment {
+  id            Int           @id @default(autoincrement())
+  userId        Int           @map("user_id")
+  planId        Int           @map("plan_id")
+  mercadoPagoId String        @unique @map("mercado_pago_id")
+  preferenceId  String?       @map("preference_id")
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING)
+  paymentType   String?       @map("payment_type")
+  paymentMethod String?       @map("payment_method")
+  metadata      Json?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  user          User           @relation(fields: [userId], references: [id])
+  subscriptions Subscription[]
+
+  @@map("payments")
+}
+
+model Subscription {
+  id        Int                @id @default(autoincrement())
+  userId    Int                @map("user_id")
+  planId    Int                @map("plan_id")
+  paymentId Int?               @map("payment_id")
+  startDate DateTime           @map("start_date")
+  endDate   DateTime           @map("end_date")
+  status    SubscriptionStatus @default(ACTIVE)
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id])
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  @@map("subscriptions")
 }

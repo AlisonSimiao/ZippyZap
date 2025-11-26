@@ -10,7 +10,7 @@ class ApiClient {
   private constructor() {
     if (!process.env.NEXT_PUBLIC_API_HOST)
       throw new Error('NEXT_PUBLIC_API_HOST is not defined')
-    
+
     this.client = axios.create({
       baseURL: process.env.NEXT_PUBLIC_API_HOST,
       httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
@@ -42,8 +42,8 @@ class ApiClient {
   }
 
   async login({ email, password }: ILogin): Promise<ILoginResponse> {
-   return this.client.post<ILoginResponse>('auth/signin', { email, password })
-    .then(({data}) => data)
+    return this.client.post<ILoginResponse>('auth/signin', { email, password })
+      .then(({ data }) => data)
 
   }
 
@@ -52,7 +52,7 @@ class ApiClient {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
-    }).then(({data}) => data)
+    }).then(({ data }) => data)
   }
 
   async createApiKey(accessToken: string, input: { name: string; status: "ACTIVE" | "REVOKED" }) {
@@ -60,7 +60,32 @@ class ApiClient {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
-    }).then(({data}) => data)
+    }).then(({ data }) => data)
+  }
+
+  async createPayment(accessToken: string, planId: number): Promise<{
+    checkoutUrl: string;
+    paymentId: number;
+    preferenceId: string;
+  }> {
+    return this.client.post('/payments/create', { planId }, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }).then(({ data }) => data);
+  }
+
+  async getPaymentStatus(accessToken: string, paymentId: string): Promise<{
+    status: string;
+    payment: any;
+  }> {
+    return this.client.get(`/payments/status/${paymentId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }).then(({ data }) => data);
+  }
+
+  async getUserSubscription(accessToken: string): Promise<any> {
+    return this.client.get('/subscriptions/current', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }).then(({ data }) => data);
   }
 }
 

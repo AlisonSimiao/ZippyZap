@@ -41,7 +41,7 @@ export class AuthMiddleware implements NestMiddleware {
     if (!user) throw new UnauthorizedException('User not found');
 
     (req as { user: Record<string, any> }).user = user;
-
+    console.log(req.originalUrl)
     next();
   } catch(err) {
       console.log(err.message)

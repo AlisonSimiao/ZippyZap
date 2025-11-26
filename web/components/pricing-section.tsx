@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Star } from "lucide-react"
 import { usePlans } from "@/hooks/use-plans"
+import { useRouter } from "next/navigation"
 
 export function PricingSection() {
   const { plans, loading, error } = usePlans()
+  const router = useRouter()
 
   if (loading) {
     return (
@@ -77,6 +79,25 @@ export function PricingSection() {
     return limit > 999999 ? '✨ Ilimitado' : formatNumber(limit.toString())
   }
 
+  const handleSelectPlan = (planId: number, isEnterprise: boolean) => {
+    if (isEnterprise) {
+      // Para plano enterprise, redirecionar para contato
+      window.location.href = "mailto:vendas@zippyzap.com?subject=Interesse no Plano Enterprise"
+      return
+    }
+
+    // Verificar se usuário está autenticado
+    const accessToken = localStorage.getItem("accessToken")
+
+    if (!accessToken) {
+      // Redirecionar para login com redirect para checkout
+      router.push(`/login?redirect=/checkout?planId=${planId}`)
+    } else {
+      // Redirecionar para checkout
+      router.push(`/checkout?planId=${planId}`)
+    }
+  }
+
   return (
     <section id="pricing" className="py-20 px-4 bg-white">
       <div className="container mx-auto">
@@ -91,11 +112,10 @@ export function PricingSection() {
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {plans.filter(plan => plan.isActive).map((plan, index) => (
-            <Card 
-              key={plan.id} 
-              className={`border-gray-200 hover:shadow-lg transition-shadow bg-white relative ${
-                index === 1 ? 'border-[#FFD700]' : ''
-              }`}
+            <Card
+              key={plan.id}
+              className={`border-gray-200 hover:shadow-lg transition-shadow bg-white relative ${index === 1 ? 'border-[#FFD700]' : ''
+                }`}
             >
               {index === 1 && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -105,7 +125,7 @@ export function PricingSection() {
                   </Badge>
                 </div>
               )}
-              
+
               <CardHeader className={`text-center pb-8 ${index === 1 ? 'pt-8' : ''}`}>
                 <CardTitle className="text-2xl text-[#333333] mb-2">{plan.name}</CardTitle>
                 <div className="mb-4">
@@ -115,7 +135,7 @@ export function PricingSection() {
                   <span className="text-[#333333]/70">/mês</span>
                 </div>
               </CardHeader>
-              
+
               <div className="px-6 pb-6">
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-center gap-3">
@@ -130,11 +150,14 @@ export function PricingSection() {
                       {formatLimit(plan.monthlyLimit)} mensagens/mês
                     </span>
                   </li>
-                  
+
                 </ul>
-                
-                <Button className="w-full bg-[#FFD700] text-black hover:bg-[#FFD700]/90">
-                  {index === plans.length - 1 ? 'Falar com Vendas' : 'Começar Agora'}
+
+                <Button
+                  onClick={() => handleSelectPlan(plan.id, index === plans.filter(p => p.isActive).length - 1)}
+                  className="w-full bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
+                >
+                  {index === plans.filter(p => p.isActive).length - 1 ? 'Falar com Vendas' : 'Começar Agora'}
                 </Button>
               </div>
             </Card>
