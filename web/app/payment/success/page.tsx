@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { CheckCircle, Loader2, ArrowRight } from "lucide-react"
 import { api } from "@/lib/api"
 import Link from "next/link"
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const paymentId = searchParams.get("payment_id")
@@ -159,5 +159,24 @@ export default function PaymentSuccessPage() {
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+export default function PaymentSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center p-4">
+                <Card className="max-w-md w-full">
+                    <CardContent className="pt-6 text-center">
+                        <Loader2 className="w-16 h-16 animate-spin text-[#FFD700] mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-[#333333] mb-2">
+                            Carregando...
+                        </h3>
+                    </CardContent>
+                </Card>
+            </div>
+        }>
+            <PaymentSuccessContent />
+        </Suspense>
     )
 }

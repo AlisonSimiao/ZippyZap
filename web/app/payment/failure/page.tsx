@@ -1,12 +1,13 @@
 "use client"
 
+import { Suspense } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { XCircle, ArrowLeft, RefreshCw } from "lucide-react"
+import { XCircle, ArrowLeft, RefreshCw, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 
-export default function PaymentFailurePage() {
+function PaymentFailureContent() {
     const searchParams = useSearchParams()
     const planId = searchParams.get("planId")
 
@@ -64,5 +65,24 @@ export default function PaymentFailurePage() {
                 </CardContent>
             </Card>
         </div>
+    )
+}
+
+export default function PaymentFailurePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center p-4">
+                <Card className="max-w-md w-full">
+                    <CardContent className="pt-6 text-center">
+                        <Loader2 className="w-16 h-16 animate-spin text-[#FFD700] mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-[#333333] mb-2">
+                            Carregando...
+                        </h3>
+                    </CardContent>
+                </Card>
+            </div>
+        }>
+            <PaymentFailureContent />
+        </Suspense>
     )
 }
