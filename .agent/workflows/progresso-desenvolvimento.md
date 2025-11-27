@@ -1,5 +1,5 @@
-Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perfeito para você acompanhar durante as 2  story:
-
+---
+description: Acompanhamento do progresso do desenvolvimento do projeto Zapi
 ---
 
 # 🚀 **ROADMAP DE 2 stories PARA LANÇAMENTO DO MVP — SaaS WhatsApp API**

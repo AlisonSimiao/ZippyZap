@@ -3,6 +3,11 @@ import { BullBoardModule } from '@bull-board/nestjs';
 import { ExpressAdapter } from '@bull-board/express';
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
+export enum EProcessor {
+    CREATE_USER = 'create-user',
+    SEND_MESSAGE = 'send-message',
+    WEBHOOK = 'webhook',
+}
 
 @Module({
     imports: [
@@ -11,18 +16,32 @@ import { BullModule } from '@nestjs/bullmq';
             adapter: ExpressAdapter,
         }),
         BullBoardModule.forFeature({
-            name: 'send-message',
+            name: EProcessor.CREATE_USER,
             adapter: BullMQAdapter,
         }),
         BullBoardModule.forFeature({
-            name: 'create-user',
+            name: EProcessor.SEND_MESSAGE,
+            adapter: BullMQAdapter,
+        }),
+        BullBoardModule.forFeature({
+            name: EProcessor.WEBHOOK,
             adapter: BullMQAdapter,
         }),
         BullModule.registerQueue({
-            name: 'send-message',
+            name: EProcessor.CREATE_USER,
         }),
         BullModule.registerQueue({
-            name: 'create-user',
+            name: EProcessor.SEND_MESSAGE,
+        }),
+        BullModule.registerQueue({
+            name: EProcessor.WEBHOOK,
+            defaultJobOptions: {
+                attempts: 2,
+                backoff: {
+                    type: 'fixed',
+                    delay: 5000,
+                },
+            },
         }),
     ],
 })

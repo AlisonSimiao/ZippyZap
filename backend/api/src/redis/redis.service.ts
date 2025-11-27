@@ -36,10 +36,18 @@ export class RedisService implements OnModuleInit {
   async set(key: string, value: string): Promise<void> {
     await RedisService.redisClient.set(key, value);
   }
+
+  /**
+   * Set a key with a value and an expiration time
+   * @param key Key to set
+   * @param value Value to set
+   * @param expiration Expiration time in seconds
+   * @returns 'OK' if the key was set
+   */
   async setWithExpiration(
     key: string,
     value: string,
-    expiration: number,
+    expiration: number, 
   ): Promise<'OK'> {
     return RedisService.redisClient.set(key, value, 'EX', expiration);
   }
