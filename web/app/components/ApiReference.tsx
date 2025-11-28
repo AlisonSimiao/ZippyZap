@@ -8,7 +8,7 @@ export default function ApiReference() {
     const apiRoutes = [
         {
             method: "POST",
-            path: "/v1/whatsapp",
+            path: "/whatsapp",
             title: "Enviar Mensagem",
             description: "Envia uma mensagem de texto via WhatsApp",
             headers: [
@@ -16,9 +16,9 @@ export default function ApiReference() {
                 { name: "Content-Type", type: "string", badge: "required", description: "application/json" }
             ],
             bodyParams: [
-                { name: "to", type: "string", badge: "required", description: "Número de destino com código do país (+5511999999999)" },
-                { name: "type", type: "string", badge: "required", description: "Tipo: text, image, document, audio, video" },
-                { name: "message", type: "string", badge: "required", description: "Texto da mensagem" }
+                { name: "to", type: "string", badge: "required", description: "Número de destino no formato DDD + número (ex: 11999999999)" },
+                { name: "type", type: "string", badge: "required", description: "Tipo da mensagem: text, image, document, audio, video" },
+                { name: "message", type: "string", badge: "required", description: "Conteúdo da mensagem" }
             ],
             response: `{
   "message": "Mensagem enviada para a fila"
@@ -26,31 +26,39 @@ export default function ApiReference() {
         },
         {
             method: "GET",
-            path: "/v1/whatsapp/qrcode",
+            path: "/whatsapp/qrcode",
             title: "Obter QR Code",
             description: "Retorna o QR Code para autenticação do WhatsApp",
             headers: [
                 { name: "X-API-Key", type: "string", badge: "required", description: "Sua chave de API" }
             ],
             response: `{
-  "status": "initializing",
+  "status": "qr_received",
   "qr": "data:image/png;base64,...."
 }`
         },
         {
             method: "POST",
-            path: "/v1/whatsapp/session",
+            path: "/whatsapp/session",
             title: "Criar Sessão WhatsApp",
             description: "Inicia uma nova sessão de autenticação WhatsApp",
             headers: [
-                { name: "X-API-Key", type: "string", badge: "required", description: "Sua chave de API" },
-                { name: "Content-Type", type: "string", badge: "required", description: "application/json" }
+                { name: "X-API-Key", type: "string", badge: "required", description: "Sua chave de API" }
             ],
             response: `{
-  "success": true,
-  "sessionId": "session_123",
-  "status": "initializing",
-  "message": "Sessão criada. Use /qrcode para obter o QR Code"
+  "message": "Sessão criada com sucesso"
+}`
+        },
+        {
+            method: "GET",
+            path: "/whatsapp/status",
+            title: "Verificar Status da Sessão",
+            description: "Retorna o status atual da conexão WhatsApp",
+            headers: [
+                { name: "X-API-Key", type: "string", badge: "required", description: "Sua chave de API" }
+            ],
+            response: `{
+  "status": "connected"
 }`
         }
     ];

@@ -35,23 +35,22 @@ import { CodeBlock } from "@/components/ui/code-block"
 export default function DocsPage() {
 
     const codeExamples = {
-        sendMessage: `curl -X POST https://api.zippyzap.com/v1/messages \\
+        sendMessage: `curl -X POST https://api.zippyzap.com/whatsapp \\
 -H "X-API-Key: YOUR_API_KEY" \\
 -H "Content-Type: application/json" \\
 -d '{
-"to": "+5511999999999",
-    "type": "text",
-        "message": "Olá! Sua mensagem foi enviada."
-  }'`,
+  "to": "11999999999",
+  "type": "text",
+  "message": "Olá! Sua mensagem foi enviada."
+}'`,
 
-        sendImage: `curl -X POST https://api.zippyzap.com/v1/messages \\
+        sendImage: `curl -X POST https://api.zippyzap.com/whatsapp \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "to": "+5511999999999",
+    "to": "11999999999",
     "type": "image",
-    "image": "https://example.com/image.jpg",
-    "caption": "Confira esta imagem!"
+    "message": "https://example.com/image.jpg"
   }'`,
 
         webhookExample: `{
@@ -95,9 +94,9 @@ app.post('/webhook', (req, res) => {
 async function sendWhatsAppMessage() {
   try {
     const response = await axios.post(
-      'https://api.zippyzap.com/v1/messages',
+      'https://api.zippyzap.com/whatsapp',
       {
-        to: '+5511999999999',
+        to: '11999999999',
         type: 'text',
         message: 'Olá! Sua mensagem foi enviada.'
       },
@@ -118,13 +117,13 @@ async function sendWhatsAppMessage() {
         pythonExample: `import requests
 
 def send_whatsapp_message():
-    url = "https://api.zippyzap.com/v1/messages"
+    url = "https://api.zippyzap.com/whatsapp"
     headers = {
         "X-API-Key": "YOUR_API_KEY",
         "Content-Type": "application/json"
     }
     data = {
-        "to": "+5511999999999",
+        "to": "11999999999",
         "type": "text",
         "message": "Olá! Sua mensagem foi enviada."
     }

@@ -9,8 +9,8 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 ---
 
 ### 📊 **Progresso Atual**
-![Progress](https://progress-bar.dev/43)
-**43% Concluído** (31 de 72 tarefas)
+![Progress](https://progress-bar.dev/49)
+**49% Concluído** (35 de 72 tarefas)
 
 ---
 
@@ -49,13 +49,13 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 ### **📅 sprint 4 — Envio de Mensagens + Webhooks**
 
 * [x] Rota de envio de mensagem (texto)
-* [ ] Rota para envio com mísprint (se MVP incluir)
+* [ ] Rota para envio com mídia (se MVP incluir)
 * [ ] Testes de envio em massa (10–20 msgs)
 * [x] Configuração de webhooks
-* [ ] Envio de eventos básicos:
+* [x] Envio de eventos básicos:
 
-  * [ ] Mensagem recebida
-  * [ ] Status de envio
+  * [x] Mensagem recebida
+  * [x] Status de envio
 
 ---
 
@@ -87,8 +87,8 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 ### **📅 sprint 7 — Painel do Usuário**
 
 * [x] Página com API Key
-* [ ] Página com status da sessão
-* [ ] Página com QR Code
+* [x] Página com status da sessão
+* [x] Página com QR Code
 * [ ] Página com logs e webhooks enviados
 * [x] Página com plano e pagamento
 
