@@ -1,3 +1,1 @@
-describe('API KEY MIDDLEWARE', () => {
-    
-})
+describe('API KEY MIDDLEWARE', () => {});

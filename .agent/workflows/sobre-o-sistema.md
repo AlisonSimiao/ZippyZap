@@ -8,18 +8,18 @@ O **Zapi** é um SaaS de API para WhatsApp, focado em fornecer uma interface sim
 
 ## 🛠 Tech Stack
 
-### Backend (`backend/api`)
+### Backend (`backend/api` & `backend/wss`)
 - **Framework**: [NestJS](https://nestjs.com/) (Node.js)
 - **Linguagem**: TypeScript
 - **Banco de Dados**: PostgreSQL (via Prisma ORM)
 - **Filas**: Redis + BullMQ
 - **Autenticação**: JWT + Bcrypt
 - **Pagamentos**: Integração com Mercado Pago
-- **WhatsApp Engine**: Baileys (biblioteca para conexão com WhatsApp Web)
+- **WhatsApp Engine**: Baileys / WPPConnect (via `backend/wss`)
 
 ### Frontend / Web
 - **Framework**: Next.js (React)
-- **Estilização**: TailwindCSS (provável, padrão moderno)
+- **Estilização**: TailwindCSS
 
 ### Infraestrutura
 - **Docker**: Containerização da aplicação e serviços (Redis, Postgres)
@@ -27,28 +27,34 @@ O **Zapi** é um SaaS de API para WhatsApp, focado em fornecer uma interface sim
 
 ## 🧩 Arquitetura
 
-O sistema segue uma arquitetura modular baseada no NestJS.
+O sistema é dividido em serviços para melhor escalabilidade:
 
-### Principais Módulos:
-- **Auth**: Gerenciamento de login, registro e JWT.
-- **User**: Gerenciamento de usuários e dados de perfil.
-- **ApiKey**: Geração e validação de chaves de API para acesso externo.
-- **Whatsapp**: Núcleo da integração com o Baileys, gerenciamento de sessões e envio de mensagens.
-- **Webhook**: Processamento e envio de eventos (mensagens recebidas, status) para os clientes.
-- **Redis**: Serviço wrapper para interação com o Redis (cache e estado).
-- **Queue**: Processamento assíncrono de mensagens usando BullMQ.
+1.  **API (`backend/api`)**:
+    - Gerencia usuários, autenticação, planos e pagamentos.
+    - Recebe requisições HTTP dos clientes (ex: enviar mensagem).
+    - Enfileira jobs no Redis (BullMQ) para serem processados.
+    - Consome filas de Webhook para notificar clientes.
+
+2.  **WSS (`backend/wss`)**:
+    - Serviço dedicado à conexão com o WhatsApp.
+    - Consome a fila `create-user` para iniciar sessões.
+    - Consome a fila `send-message` (provável) ou processa eventos do WhatsApp.
+    - Gerencia as instâncias do WPPConnect/Baileys.
 
 ## 🔄 Fluxos Principais
 
 1.  **Envio de Mensagem**:
     - Cliente chama API `/send-message` com API Key.
-    - API valida chave e status da sessão no Redis.
-    - Mensagem é colocada na fila `send-message` (BullMQ).
-    - Worker processa a fila e usa a sessão do Baileys para enviar.
+    - API valida chave (cache no Redis) e status da sessão.
+    - Mensagem é colocada na fila `send-message`.
+    - Worker (no WSS) processa a fila e envia via instância do WhatsApp.
 
 2.  **Webhooks**:
-    - Eventos do Baileys (ex: mensagem recebida) são capturados.
-    - Eventos são enviados para a URL de webhook configurada pelo usuário.
+    - Eventos do WhatsApp (ex: mensagem recebida) são capturados pelo WSS.
+    - WSS enfileira job de webhook.
+    - Worker de Webhook (`WebhookProcessor` na API) processa o job.
+    - Busca URL de webhook do usuário (cache no Redis `webhook:{userId}`).
+    - Envia POST para o cliente com assinatura HMAC.
 
 3.  **Pagamentos**:
     - Webhooks do Mercado Pago atualizam o status da assinatura no banco de dados.

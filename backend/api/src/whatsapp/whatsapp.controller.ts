@@ -6,31 +6,36 @@ import { UserService } from 'src/user/user.service';
 
 @Controller('whatsapp')
 export class WhatsappController {
-    constructor(
-        private readonly whatsappService: WhatsappService,
-        private readonly userService: UserService
-    ) { }
+  constructor(
+    private readonly whatsappService: WhatsappService,
+    private readonly userService: UserService,
+  ) {}
 
-    @Post()
-    async sendMessage(
-        @Body() body: SendMessageDto,
-        @Req() req: Request & { apiKey: { userId: number } },
-    ) {
-        const { to: phone, message: text } = body;
+  @Post()
+  async sendMessage(
+    @Body() body: SendMessageDto,
+    @Req() req: Request & { apiKey: { userId: number } },
+  ) {
+    const { to: phone, message: text } = body;
 
-        const userId = req.apiKey.userId.toString();
+    const userId = req.apiKey.userId.toString();
 
-        await this.whatsappService.sendMessage(userId, phone, text);
-        return { message: 'Mensagem enviada para a fila' };
-    }
+    await this.whatsappService.sendMessage(userId, phone, text);
+    return { message: 'Mensagem enviada para a fila' };
+  }
 
-    @Get('qrcode')
-    getWhatsAppQRCode(@Req() req: Request & { apiKey: { userId: number } }) {
-        return this.userService.getWhatsAppQRCode(req.apiKey.userId.toString());
-    }
+  @Get('qrcode')
+  getWhatsAppQRCode(@Req() req: Request & { apiKey: { userId: number } }) {
+    return this.userService.getWhatsAppQRCode(req.apiKey.userId.toString());
+  }
 
-    @Post('session')
-    createWhatsAppSession(@Req() req: Request & { apiKey: { userId: number } }) {
-        return this.userService.createWhatsAppSession(req.apiKey.userId.toString());
-    }
+  @Post('session')
+  createWhatsAppSession(@Req() req: Request & { apiKey: { userId: number } }) {
+    return this.userService.createWhatsAppSession(req.apiKey.userId.toString());
+  }
+
+  @Get('status')
+  getStatus(@Req() req: Request & { apiKey: { userId: number } }) {
+    return this.userService.getStatus(req.apiKey.userId.toString());
+  }
 }

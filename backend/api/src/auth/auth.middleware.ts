@@ -21,31 +21,31 @@ export class AuthMiddleware implements NestMiddleware {
     next: () => void,
   ) {
     try {
-    const token = req.headers.authorization?.split(' ')[1] as string;
+      const token = req.headers.authorization?.split(' ')[1] as string;
 
-    if (!token) throw new ForbiddenException('Token not found');
+      if (!token) throw new ForbiddenException('Token not found');
 
-    const payload = this.jwtService.verify<{ id: number }>(token, {
-      secret: process.env.JWT_SECRET,
-    });
+      const payload = this.jwtService.verify<{ id: number }>(token, {
+        secret: process.env.JWT_SECRET,
+      });
 
-    const user = await this.prisma.user.findUnique({
-      where: {
-        id: payload.id,
-      },
-      select: {
-        id: true,
-      },
-    });
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: payload.id,
+        },
+        select: {
+          id: true,
+        },
+      });
 
-    if (!user) throw new UnauthorizedException('User not found');
+      if (!user) throw new UnauthorizedException('User not found');
 
-    (req as { user: Record<string, any> }).user = user;
-    console.log(req.originalUrl)
-    next();
-  } catch(err) {
-      console.log(err.message)
-      throw new UnauthorizedException()
-  }
+      (req as { user: Record<string, any> }).user = user;
+      console.log(req.originalUrl);
+      next();
+    } catch (err) {
+      console.log(err.message);
+      throw new UnauthorizedException();
+    }
   }
 }

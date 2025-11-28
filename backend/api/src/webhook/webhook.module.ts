@@ -1,13 +1,12 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { QueueBoardModule } from '../queue-board/queue-board.module';
-import { WebhookService } from './webhook.processor';
+import { WebhookProcessor } from './webhook.processor';
+import { RedisService } from 'src/redis/redis.service';
 
 @Module({
-    imports: [
-        QueueBoardModule,
-    ],
-    providers: [WebhookService],
-    exports: [WebhookService],
+  imports: [QueueBoardModule],
+  providers: [RedisService, WebhookProcessor],
+  exports: [WebhookProcessor],
 })
-export class WebhookModule { }
+export class WebhookModule {}

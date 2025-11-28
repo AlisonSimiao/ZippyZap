@@ -41,4 +41,20 @@ export class RedisService {
   async keys(pattern: string): Promise<string[]> {
     return RedisService.redisClient.keys(pattern);
   }
+
+  /**
+   * Set a key with a value and an expiration time
+   * @param key Key to set
+   * @param value Value to set
+   * @param expiration Expiration time in seconds
+   * @returns 'OK' if the key was set
+   */
+  async setWithExpiration(
+    key: string,
+    value: string,
+    expiration: number,
+  ): Promise<'OK'> {
+    return RedisService.redisClient.set(key, value, 'EX', expiration);
+  }
+
 }

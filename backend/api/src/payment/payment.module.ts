@@ -19,4 +19,4 @@ import { PrismaModule } from 'src/prisma/prisma.module';
   ],
   exports: [PaymentService],
 })
-export class PaymentModule { }
+export class PaymentModule {}

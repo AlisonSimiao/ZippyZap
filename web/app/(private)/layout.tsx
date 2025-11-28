@@ -29,15 +29,15 @@ export default function PrivateLayout({ children }: PrivateLayoutProps) {
     return null
   }
 
-  const accessToken = (session as unknown as {accessToken: string}).accessToken
+  const accessToken = (session as unknown as { accessToken: string }).accessToken
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <HEADERS.DashboardHeader />
       <AuthProvider accessToken={accessToken}>
-      <div className="flex">
-        {children}
-      </div>
+        <div className="flex flex-1">
+          {children}
+        </div>
       </AuthProvider>
     </div>
   )

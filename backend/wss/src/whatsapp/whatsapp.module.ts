@@ -1,16 +1,11 @@
-import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-import { RedisService } from 'src/redis/redis.service';
 import { WhatsappService } from './whatsapp.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Module({
-  imports: [
-    BullModule.registerQueue({
-      name: 'create-user',
-    }),
-  ],
+  imports: [],
   controllers: [],
-  providers: [RedisService, WhatsappService],
+  providers: [WhatsappService, RedisService],
   exports: [WhatsappService],
 })
-export class WhatsappModule {}
+export class WhatsappModule { }

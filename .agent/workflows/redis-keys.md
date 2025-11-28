@@ -11,19 +11,37 @@ Este documento lista os padrões de chaves utilizados no Redis para o projeto Za
 ### Sessão e Status do Usuário
 - **`user:{userId}:status`**
     - **Descrição**: Armazena o status atual da conexão do WhatsApp do usuário.
-    - **Valores**: `'connected'`, `'disconnected'`, `'connecting'`, etc.
-    - **Uso**: Verificado antes de enviar mensagens para garantir que a sessão está ativa.
+    - **Valores**: 
+        - `'connected'`: Sessão ativa e conectada.
+        - `'disconnected'`: Sessão desconectada.
+        - `'inChat'`, `'isLogged'`: Estados intermediários do Baileys que indicam conexão.
+    - **Uso**: Verificado antes de enviar mensagens e para restaurar sessões ao reiniciar o serviço.
     - **Exemplo**: `user:123e4567-e89b-12d3-a456-426614174000:status`
+
+- **`user:{userId}:qrcode`**
+    - **Descrição**: Armazena o QR Code gerado para autenticação.
+    - **Formato**: JSON string `{ qr: "base64...", expireAt: timestamp }`
+    - **Uso**: Recuperado pelo endpoint `/qrcode` para exibir ao usuário.
+
+### Cache de Autenticação e Configuração
+- **`apiKey:{hash}`**
+    - **Descrição**: Cache dos dados da API Key para evitar consultas frequentes ao banco de dados no middleware.
+    - **Conteúdo**: JSON com `id`, `userId` e dados do plano.
+    - **TTL**: 3 horas.
+
+- **`webhook:{userId}`**
+    - **Descrição**: Cache da URL de webhook e API Key do usuário para envio de eventos.
+    - **Conteúdo**: JSON `{ url: string, apiKey: string }`.
+    - **TTL**: 4 horas.
 
 ### Filas (BullMQ)
 O BullMQ gerencia suas próprias chaves com o prefixo padrão `bull:`.
 - **`bull:send-message:*`**
-    - **Descrição**: Chaves relacionadas à fila de envio de mensagens.
-    - **Estrutura**: Hashs, Sets e Lists gerenciados pelo BullMQ para jobs, status, etc.
-
-### Outros (Potenciais)
-- **`session:{sessionId}`** (A verificar se usado diretamente ou via biblioteca)
-    - Armazenamento de dados da sessão do Baileys (se persistência em Redis estiver ativa).
+    - Fila para envio de mensagens.
+- **`bull:create-user:*`**
+    - Fila para criação e gerenciamento de sessões.
+- **`bull:webhook:*`** (provável, baseado no processador)
+    - Fila para envio de webhooks.
 
 ## 🛠 Comandos Úteis
 
@@ -35,6 +53,12 @@ KEYS user:*:status
 
 # Ver valor de um status
 GET user:UUID_DO_USUARIO:status
+
+# Ver QR Code armazenado
+GET user:UUID_DO_USUARIO:qrcode
+
+# Limpar cache de uma API Key específica
+DEL apiKey:HASH_DA_CHAVE
 
 # Monitorar comandos em tempo real
 MONITOR

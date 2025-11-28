@@ -1,6 +1,7 @@
 import { IApikey } from '@/types/apikey'
 import { IPlan } from '@/types/plan.types'
 import { ILogin, ILoginResponse } from '@/types/user.types'
+import { IWhatsAppSession, IWhatsAppQRCode, IWhatsAppMessage } from '@/types/whatsapp.types'
 import axios, { AxiosInstance } from 'axios'
 
 class ApiClient {
@@ -85,6 +86,30 @@ class ApiClient {
   async getUserSubscription(accessToken: string): Promise<any> {
     return this.client.get('/subscriptions/current', {
       headers: { Authorization: `Bearer ${accessToken}` }
+    }).then(({ data }) => data);
+  }
+
+  async createWhatsAppSession(apiKey: string): Promise<IWhatsAppSession> {
+    return this.client.post<IWhatsAppSession>('/whatsapp/session', {}, {
+      headers: { 'x-api-key': apiKey }
+    }).then(({ data }) => data);
+  }
+
+  async getWhatsAppQRCode(apiKey: string): Promise<IWhatsAppQRCode> {
+    return this.client.get<IWhatsAppQRCode>('/whatsapp/qrcode', {
+      headers: { 'x-api-key': apiKey }
+    }).then(({ data }) => data);
+  }
+
+  async sendWhatsAppMessage(apiKey: string, message: IWhatsAppMessage): Promise<{ message: string }> {
+    return this.client.post<{ message: string }>('/whatsapp', message, {
+      headers: { 'x-api-key': apiKey }
+    }).then(({ data }) => data);
+  }
+
+  async getWhatsAppStatus(apiKey: string): Promise<{ status: string }> {
+    return this.client.get<{ status: string }>('/whatsapp/status', {
+      headers: { 'x-api-key': apiKey }
     }).then(({ data }) => data);
   }
 }

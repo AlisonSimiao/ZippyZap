@@ -88,21 +88,33 @@ export class UserService {
     });
   }
 
-  async getWhatsAppQRCode(idUser: string): Promise<{ status: string; qr: string }> {
-    const qr = await this.redisService.get(`user:${idUser}:qrcode`);
+  async getWhatsAppQRCode(
+    idUser: string,
+  ): Promise<{ status: string; qr: string }> {
+    const qrData = await this.redisService.get(`user:${idUser}:qrcode`);
 
-    if (!qr) {
+    if (!qrData) {
       throw new NotFoundException(
         'QR code not found',
         'tenha certeza que já usou a rota de criar sessao',
       );
     }
 
-    const status = await this.redisService.get(`user:${idUser}:status`) || '';
+    // Parse the JSON string to extract the base64 QR code
+    let qrBase64: string;
+    try {
+      const parsed = JSON.parse(qrData);
+      qrBase64 = parsed.qr;
+    } catch (error) {
+      // If it's not JSON, assume it's already the base64 string (backward compatibility)
+      qrBase64 = qrData;
+    }
+
+    const status = (await this.redisService.get(`user:${idUser}:status`)) || '';
 
     return {
       status,
-      qr
+      qr: qrBase64,
     };
   }
 
@@ -112,11 +124,11 @@ export class UserService {
     });
 
     return {
-      "success": true,
-      "sessionId": `session_${idUser}`,
-      "status": "initializing",
-      "message": "Sessão criada. Use /qrcode para obter o QR Code"
-    }
+      success: true,
+      sessionId: `session_${idUser}`,
+      status: 'initializing',
+      message: 'Sessão criada. Use /qrcode para obter o QR Code',
+    };
   }
 
   async update(body: UpdateUserDto, idUser: number) {
@@ -152,5 +164,11 @@ export class UserService {
 
     if (!res.ok || res.status !== 200)
       throw new ForbiddenException('Webhook URL não tem uma resposta valida');
+  }
+
+  async getStatus(idUser: string): Promise<{ status: string }> {
+    const status =
+      (await this.redisService.get(`user:${idUser}:status`)) || 'disconnected';
+    return { status };
   }
 }

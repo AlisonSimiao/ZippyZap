@@ -12,6 +12,13 @@ import { RedisService } from 'src/redis/redis.service';
     }),
     BullModule.registerQueue({
       name: 'send-message',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+      },
     }),
   ],
   controllers: [],

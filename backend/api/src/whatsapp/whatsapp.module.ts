@@ -1,28 +1,27 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { WhatsappService } from './whatsapp.service';
-import { WhatsappController } from './whatsapp.controller';
 import { BullModule } from '@nestjs/bullmq';
-import { RedisService } from '../redis/redis.service';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { UserService } from 'src/user/user.service';
 import { ApiKeyMiddleware } from '../api-key/api-key.middleware';
 import { PrismaModule } from '../prisma/prisma.module';
-import { UserService } from 'src/user/user.service';
-import { UserModule } from 'src/user/user.module';
+import { RedisService } from '../redis/redis.service';
+import { WhatsappController } from './whatsapp.controller';
+import { WhatsappService } from './whatsapp.service';
 
 @Module({
-    imports: [
-        BullModule.registerQueue({
-            name: 'send-message',
-        }),
-        BullModule.registerQueue({
-            name: 'create-user',
-        }),
-        PrismaModule,
-    ],
-    controllers: [WhatsappController],
-    providers: [WhatsappService, RedisService, UserService],
+  imports: [
+    BullModule.registerQueue({
+      name: 'send-message',
+    }),
+    BullModule.registerQueue({
+      name: 'create-user',
+    }),
+    PrismaModule,
+  ],
+  controllers: [WhatsappController],
+  providers: [WhatsappService, RedisService, UserService],
 })
 export class WhatsappModule implements NestModule {
-    configure(consumer: MiddlewareConsumer) {
-        consumer.apply(ApiKeyMiddleware).forRoutes(WhatsappController);
-    }
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ApiKeyMiddleware).forRoutes(WhatsappController);
+  }
 }

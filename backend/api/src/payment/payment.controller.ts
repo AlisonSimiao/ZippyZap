@@ -3,7 +3,7 @@ import { PaymentService } from './payment.service';
 
 @Controller('payments')
 export class PaymentController {
-  constructor(private paymentService: PaymentService) { }
+  constructor(private paymentService: PaymentService) {}
 
   @Post('create')
   async createPayment(@Request() req, @Body() body: { planId: number }) {
@@ -17,7 +17,10 @@ export class PaymentController {
   }
 
   @Get('status/:paymentId')
-  async getPaymentStatus(@Request() req, @Param('paymentId') paymentId: string) {
+  async getPaymentStatus(
+    @Request() req,
+    @Param('paymentId') paymentId: string,
+  ) {
     const userId = req.user.id;
     return this.paymentService.getPaymentStatus(parseInt(paymentId), userId);
   }

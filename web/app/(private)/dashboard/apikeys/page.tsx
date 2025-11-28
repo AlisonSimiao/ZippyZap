@@ -125,7 +125,7 @@ export default function ApiKeysPage() {
                         <td className="p-4">
                           <div className="flex items-center gap-2">
                             <code className="bg-gray-100 px-3 py-1 rounded text-sm font-mono">
-                              {'scbacbakscb'}
+                              {'*'.repeat(20)}
                             </code>
                             <Button
                               variant="ghost"
@@ -137,8 +137,8 @@ export default function ApiKeysPage() {
                             </Button>
                           </div>
                         </td>
-                        <td className="p-4 text-gray-600">{format(new Date(apiKey.createdAt), 'dd-mm-yyyy')}</td>
-                        <td className="p-4 text-gray-600">{Date.now()}</td>
+                        <td className="p-4 text-gray-600">{format(new Date(apiKey.createdAt), 'dd-MM-yyyy HH:mm:ss')}</td>
+                        <td className="p-4 text-gray-600">{format(new Date(apiKey.createdAt), 'dd-MM-yyyy HH:mm:ss')}</td>
                         <td className="p-4">
                           <span className="text-sm font-medium">{0} API Calls</span>
                         </td>

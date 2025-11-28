@@ -1,5 +1,13 @@
-import { Inject, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import MercadoPagoConfig, { Preference, Payment as MPPayment } from 'mercadopago';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import MercadoPagoConfig, {
+  Preference,
+  Payment as MPPayment,
+} from 'mercadopago';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PaymentStatus } from '@prisma/client';
 
@@ -8,7 +16,7 @@ export class PaymentService {
   constructor(
     @Inject('MercadoPago') private readonly mp: MercadoPagoConfig,
     private readonly prisma: PrismaService,
-  ) { }
+  ) {}
 
   async createPaymentPreference(userId: number, planId: number) {
     // Buscar informações do plano
@@ -76,7 +84,10 @@ export class PaymentService {
       },
     };
 
-    console.log('Criando preferência com dados:', JSON.stringify(preferenceData, null, 2));
+    console.log(
+      'Criando preferência com dados:',
+      JSON.stringify(preferenceData, null, 2),
+    );
 
     const result = await preference.create({
       body: preferenceData,
@@ -189,7 +200,7 @@ export class PaymentService {
           paymentType: paymentData.payment_type_id,
           paymentMethod: paymentData.payment_method_id,
           metadata: {
-            ...payment.metadata as object,
+            ...(payment.metadata as object),
             mercadoPagoPaymentId: paymentData.id,
             statusDetail: paymentData.status_detail,
             updatedAt: new Date().toISOString(),
@@ -199,7 +210,11 @@ export class PaymentService {
 
       // Se pagamento aprovado, criar/ativar assinatura
       if (status === PaymentStatus.APPROVED) {
-        await this.activateSubscription(payment.userId, payment.planId, payment.id);
+        await this.activateSubscription(
+          payment.userId,
+          payment.planId,
+          payment.id,
+        );
       }
 
       return { received: true, status };
@@ -209,7 +224,11 @@ export class PaymentService {
     }
   }
 
-  private async activateSubscription(userId: number, planId: number, paymentId: number) {
+  private async activateSubscription(
+    userId: number,
+    planId: number,
+    paymentId: number,
+  ) {
     // Verificar se já existe assinatura ativa
     const existingSubscription = await this.prisma.subscription.findFirst({
       where: {
@@ -233,8 +252,12 @@ export class PaymentService {
         endDate = new Date(existingEndDate);
         endDate.setDate(endDate.getDate() + 30);
 
-        console.log(`Renovação antecipada: assinatura atual válida até ${existingEndDate.toISOString()}`);
-        console.log(`Nova assinatura começará em ${startDate.toISOString()} e terminará em ${endDate.toISOString()}`);
+        console.log(
+          `Renovação antecipada: assinatura atual válida até ${existingEndDate.toISOString()}`,
+        );
+        console.log(
+          `Nova assinatura começará em ${startDate.toISOString()} e terminará em ${endDate.toISOString()}`,
+        );
       } else {
         // Assinatura expirada, começar imediatamente
         endDate.setDate(endDate.getDate() + 30);
