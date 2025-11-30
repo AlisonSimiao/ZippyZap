@@ -157,6 +157,7 @@ model Webhook {
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   webhookEvents WebhookEvent[]
+  logs          WebhookLog[]
 
   @@map("webhooks")
 }
@@ -186,4 +187,19 @@ model WebhookEvent {
 
   @@unique([webhookId, eventId])
   @@map("webhook_events")
+}
+
+model WebhookLog {
+  id        Int      @id @default(autoincrement())
+  webhookId Int      @map("webhook_id")
+  event     String
+  payload   Json
+  status    Int // HTTP Status Code
+  response  String? // Response body or error message
+  duration  Int // Duration in ms
+  createdAt DateTime @default(now()) @map("created_at")
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@map("webhook_logs")
 }

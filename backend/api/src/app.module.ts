@@ -19,6 +19,7 @@ import { AuthMiddleware } from './auth/auth.middleware';
 import { ApiKeyModule } from './api-key/api-key.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { QueueBoardModule } from './queue-board/queue-board.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { QueueBoardModule } from './queue-board/queue-board.module';
     ApiKeyModule,
     WhatsappModule,
     QueueBoardModule,
+    DashboardModule,
   ],
   controllers: [AppController, WebhookController],
   providers: [AppService],

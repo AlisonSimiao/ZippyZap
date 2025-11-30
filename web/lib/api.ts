@@ -158,6 +158,17 @@ class ApiClient {
       headers: { Authorization: `Bearer ${accessToken}` }
     }).then(({ data }) => data);
   }
+
+  async sendDashboardMessage(to: string, message: string): Promise<{ success: boolean }> {
+    return this.client.post<{ success: boolean }>('/dashboard/send-message', { to, message })
+      .then(({ data }) => data);
+  }
+
+  async getDashboardOverview(accessToken: string): Promise<any> {
+    return this.client.get('/dashboard/overview', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }).then(({ data }) => data);
+  }
 }
 
 export const api = ApiClient.getInstance()

@@ -19,6 +19,7 @@ import { WhatsappService } from './whatsapp.service';
   ],
   controllers: [WhatsappController],
   providers: [WhatsappService, RedisService, UserService],
+  exports: [WhatsappService],
 })
 export class WhatsappModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -112,22 +112,51 @@ export class WebhookProcessor extends WorkerHost {
 
     const signature = this.generateSignature(payload, webhookData.apiKey);
 
+    const start = Date.now();
+    let status = 0;
+    let responseBody = '';
+    let errorMsg = null;
+
     try {
-      await this.http.post(webhookData.url, payload, {
+      const response = await this.http.post(webhookData.url, payload, {
         headers: {
           'Content-Type': 'application/json',
           'X-Webhook-Signature': signature,
         },
       });
 
+      status = response.status;
+      responseBody = JSON.stringify(response.data).substring(0, 1000); // Truncate if too long
+
       this.logger.log(
         `Webhook ${webhookData.id} sent successfully for event ${job.data.type}`
       );
     } catch (error) {
+      status = error.response?.status || 500;
+      errorMsg = error.message;
+      responseBody = error.response?.data ? JSON.stringify(error.response.data).substring(0, 1000) : error.message;
+
       this.logger.error(
         `Failed to send webhook ${webhookData.id}: ${error.message}`
       );
-      throw error;
+      // Don't throw yet, we want to log first
+    } finally {
+      const duration = Date.now() - start;
+
+      await this.prisma.webhookLog.create({
+        data: {
+          webhookId: webhookData.id,
+          event: job.data.type,
+          payload: payload as any,
+          status,
+          response: responseBody,
+          duration
+        }
+      });
+
+      if (errorMsg) {
+        throw new Error(errorMsg);
+      }
     }
   }
 
