@@ -78,10 +78,34 @@ async function createAdmin(logger: Logger) {
     });
 }
 
+async function createEvents(logger: Logger) {
+  logger.log('Creating events...');
+
+  const events = [
+    { slug: 'message.received', name: 'Mensagem Recebida', description: 'Quando uma mensagem é recebida' },
+    { slug: 'message.sent', name: 'Mensagem Enviada', description: 'Quando uma mensagem é enviada' },
+    { slug: 'message.delivered', name: 'Mensagem Entregue', description: 'Quando uma mensagem é entregue' },
+    { slug: 'message.read', name: 'Mensagem Lida', description: 'Quando uma mensagem é lida' },
+    { slug: 'session.connected', name: 'Sessão Conectada', description: 'Quando a sessão WhatsApp conecta' },
+    { slug: 'session.disconnected', name: 'Sessão Desconectada', description: 'Quando a sessão WhatsApp desconecta' },
+  ];
+
+  for (const event of events) {
+    await prisma.event.upsert({
+      where: { slug: event.slug },
+      update: {},
+      create: event,
+    });
+  }
+
+  logger.log('Events created.');
+}
+
 async function main() {
   const logger = new Logger('Seed');
 
   await createPlains(logger);
+  await createEvents(logger);
   await createAdmin(logger);
 }
 

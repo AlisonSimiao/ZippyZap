@@ -1,18 +1,23 @@
-import { OnWorkerEvent, WorkerHost } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
-import { EProcessor } from '../queue-board/queue-board.module';
-import { Processor } from '@nestjs/bullmq';
-import { RedisService } from 'src/redis/redis.service';
-import axios, { AxiosInstance } from 'axios';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
+import axios, { AxiosInstance } from 'axios';
+import { Job } from 'bullmq';
 import crypto from 'crypto';
-import { subHours, format } from 'date-fns';
+import { format } from 'date-fns';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { RedisService } from 'src/redis/redis.service';
+import { EProcessor } from '../queue-board/queue-board.module';
 
 interface IWebhookJob {
   idUser: string;
   type: string;
   data: any;
+}
+
+interface IWebhookData {
+  id: number;
+  url: string;
+  apiKey: string;
 }
 
 @Processor(EProcessor.WEBHOOK)
@@ -35,65 +40,95 @@ export class WebhookProcessor extends WorkerHost {
   async process(job: Job<IWebhookJob>): Promise<any> {
     this.logger.log(`Processing job ${job.id} - ${job.data.idUser}`);
 
-    const webhook = await this.redis.get(`webhook:${job.data.idUser}`);
-    let dataWebhook: { url: string; apiKey: string };
+    const cacheKey = `webhook:${job.data.idUser}:${job.data.type}`;
+    const cachedData = await this.redis.get(cacheKey);
+    let webhookData: IWebhookData;
 
-    if (!webhook) {
-      const user = await this.prisma.user.findUnique({
+    if (!cachedData) {
+      // Buscar apenas o webhook mais novo ativo com o evento habilitado
+      const webhook = await this.prisma.webhook.findFirst({
         where: {
-          id: +job.data.idUser,
+          userId: +job.data.idUser,
+          isActive: true,
+          webhookEvents: {
+            some: {
+              active: true,
+              event: {
+                slug: job.data.type,
+              },
+            },
+          },
         },
-        select: {
-          webhookUrl: true,
-          ApiKeys: {
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
             select: {
-              hash: true,
-              status: true,
+              ApiKeys: {
+                where: { status: 'ACTIVE' },
+                select: { hash: true },
+                take: 1,
+              },
             },
           },
         },
       });
 
-      if (!user) {
-        this.logger.log(`User ${job.data.idUser} not found`);
-        throw new Error('User not found');
+      if (!webhook) {
+        this.logger.log(
+          `No active webhook found for user ${job.data.idUser} with event ${job.data.type}`
+        );
+        return;
       }
 
-      if (!user.webhookUrl) {
-        this.logger.log(`User ${job.data.idUser} webhookUrl not found`);
-        throw new Error('Webhook url not found');
+      if (!webhook.user.ApiKeys || webhook.user.ApiKeys.length === 0) {
+        this.logger.log(
+          `User ${job.data.idUser} has no active API Keys for signing`
+        );
+        return;
       }
 
-      if (!user.ApiKeys || user.ApiKeys.length === 0) {
-        this.logger.log(`User ${job.data.idUser} has no API Keys for signing`);
-        throw new Error('User has no API Keys for signing');
-      }
+      webhookData = {
+        id: webhook.id,
+        url: webhook.url,
+        apiKey: webhook.user.ApiKeys[0].hash,
+      };
 
-      dataWebhook = { url: user.webhookUrl, apiKey: user.ApiKeys[0].hash };
+      // Cache por 5 minutos
+      await this.redis.setWithExpiration(
+        cacheKey,
+        JSON.stringify(webhookData),
+        300
+      );
     } else {
-      dataWebhook = JSON.parse(webhook) as { url: string; apiKey: string };
+      webhookData = JSON.parse(cachedData) as IWebhookData;
     }
 
     const payload = {
       event: job.data.type,
       data: job.data.data,
       timestamp: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss'-03:00'"),
+      webhookId: webhookData.id,
     };
 
-    const signature = this.generateSignature(payload, dataWebhook.apiKey);
+    const signature = this.generateSignature(payload, webhookData.apiKey);
 
-    await this.http.post(dataWebhook.url, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Webhook-Signature': signature,
-      },
-    });
+    try {
+      await this.http.post(webhookData.url, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Webhook-Signature': signature,
+        },
+      });
 
-    await this.redis.setWithExpiration(
-      `webhook:${job.data.idUser}`,
-      JSON.stringify(dataWebhook),
-      this.FOUR_HOURS,
-    );
+      this.logger.log(
+        `Webhook ${webhookData.id} sent successfully for event ${job.data.type}`
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send webhook ${webhookData.id}: ${error.message}`
+      );
+      throw error;
+    }
   }
 
   generateSignature(payload: any, secret: string) {

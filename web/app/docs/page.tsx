@@ -1,36 +1,34 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-    BookOpen,
-    Zap,
-    Shield,
-    Webhook,
-    Code,
-    AlertTriangle,
-    CheckCircle,
-    ArrowRight,
-    Copy,
-    MessageSquare,
-    ShoppingCart,
-    Bell,
-    Users,
-    Lock,
     Activity,
-    FileText,
-    Server,
+    AlertTriangle,
+    ArrowRight,
+    Bell,
+    BookOpen,
+    CheckCircle,
+    Code,
     Database,
+    FileText,
     Key,
-    Search
+    Lock,
+    MessageSquare,
+    Server,
+    Shield,
+    ShoppingCart,
+    Users,
+    Webhook,
+    Zap
 } from "lucide-react"
 
 import { HEADERS } from "@/components/Header"
-import ApiReference from "../components/ApiReference"
-import Link from "next/link"
 import { CodeBlock } from "@/components/ui/code-block"
+import Link from "next/link"
+import ApiReference from "../components/ApiReference"
 
 export default function DocsPage() {
 

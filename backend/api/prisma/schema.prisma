@@ -31,6 +31,7 @@ model User {
   ApiKeys       ApiKey[]
   payments      Payment[]
   subscriptions Subscription[]
+  webhooks      Webhook[]
 
   @@map("users")
 }
@@ -143,4 +144,46 @@ model Subscription {
   payment Payment? @relation(fields: [paymentId], references: [id])
 
   @@map("subscriptions")
+}
+
+model Webhook {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  url       String
+  name      String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  webhookEvents WebhookEvent[]
+
+  @@map("webhooks")
+}
+
+model Event {
+  id          Int            @id @default(autoincrement())
+  name        String
+  slug        String         @unique
+  description String?
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  webhooks    WebhookEvent[]
+
+  @@map("events")
+}
+
+model WebhookEvent {
+  id        Int      @id @default(autoincrement())
+  webhookId Int      @map("webhook_id")
+  eventId   Int      @map("event_id")
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([webhookId, eventId])
+  @@map("webhook_events")
 }

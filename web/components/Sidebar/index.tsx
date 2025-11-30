@@ -1,6 +1,6 @@
 'use client'
 
-import { Key, Crown, User, Zap, MessageSquare } from 'lucide-react'
+import { Key, Crown, User, Zap, MessageSquare, Webhook } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 
@@ -16,9 +16,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
   const menuItems = [
     { id: 'apikeys', label: 'API Keys', icon: Key, path: '/dashboard/apikeys' },
     { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare, path: '/dashboard/whatsapp' },
+    { id: 'webhooks', label: 'Webhooks', icon: Webhook, path: '/dashboard/webhooks' },
     { id: 'plans', label: 'Planos', icon: Crown, path: '/dashboard/plans' },
     { id: 'account', label: 'Conta', icon: User, path: '/dashboard/account' }
   ]
+
 
   const handleNavigation = (item: typeof menuItems[0]) => {
     router.push(item.path)

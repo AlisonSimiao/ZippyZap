@@ -2,7 +2,10 @@ import { IApikey } from '@/types/apikey'
 import { IPlan } from '@/types/plan.types'
 import { ILogin, ILoginResponse } from '@/types/user.types'
 import { IWhatsAppSession, IWhatsAppQRCode, IWhatsAppMessage } from '@/types/whatsapp.types'
+import { IWebhook, ICreateWebhook, IUpdateWebhook, IEvent } from '@/types/webhook.types'
 import axios, { AxiosInstance } from 'axios'
+import { signOut } from 'next-auth/react'
+
 
 class ApiClient {
   private static instance: ApiClient
@@ -16,6 +19,18 @@ class ApiClient {
       baseURL: process.env.NEXT_PUBLIC_API_HOST,
       httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
     })
+
+    this.client.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (error.response?.status === 401) {
+          if (typeof window !== 'undefined') {
+            await signOut({ callbackUrl: '/login' })
+          }
+        }
+        return Promise.reject(error)
+      }
+    )
   }
 
   static getInstance(): ApiClient {
@@ -110,6 +125,37 @@ class ApiClient {
   async getWhatsAppStatus(apiKey: string): Promise<{ status: string }> {
     return this.client.get<{ status: string }>('/whatsapp/status', {
       headers: { 'x-api-key': apiKey }
+    }).then(({ data }) => data);
+  }
+
+  // Webhook methods
+  async getWebhook(accessToken: string): Promise<IWebhook | null> {
+    return this.client.get<IWebhook>('/webhooks', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }).then(({ data }) => data);
+  }
+
+  async createWebhook(accessToken: string, webhook: ICreateWebhook): Promise<IWebhook> {
+    return this.client.post<IWebhook>('/webhooks', webhook, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }).then(({ data }) => data);
+  }
+
+  async updateWebhook(accessToken: string, id: number, webhook: IUpdateWebhook): Promise<IWebhook> {
+    return this.client.patch<IWebhook>(`/webhooks/${id}`, webhook, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }).then(({ data }) => data);
+  }
+
+  async deleteWebhook(accessToken: string, id: number): Promise<void> {
+    return this.client.delete(`/webhooks/${id}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }).then(() => undefined);
+  }
+
+  async getWebhookEvents(accessToken: string): Promise<IEvent[]> {
+    return this.client.get<IEvent[]>('/webhooks/events', {
+      headers: { Authorization: `Bearer ${accessToken}` }
     }).then(({ data }) => data);
   }
 }
