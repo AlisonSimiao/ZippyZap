@@ -9,8 +9,8 @@ description: Acompanhamento do progresso do desenvolvimento do projeto Zapi
 ---
 
 ### 📊 **Progresso Atual**
-![Progress](https://progress-bar.dev/43)
-**43% Concluído** (31 de 72 tarefas)
+![Progress](https://progress-bar.dev/51)
+**51% Concluído** (37 de 72 tarefas)
 
 ---
 
@@ -49,13 +49,13 @@ description: Acompanhamento do progresso do desenvolvimento do projeto Zapi
 ### **📅 sprint 4 — Envio de Mensagens + Webhooks**
 
 * [x] Rota de envio de mensagem (texto)
-* [ ] Rota para envio com mísprint (se MVP incluir)
+* [ ] Rota para envio com mídia (se MVP incluir)
 * [ ] Testes de envio em massa (10–20 msgs)
 * [x] Configuração de webhooks
-* [ ] Envio de eventos básicos:
+* [x] Envio de eventos básicos:
 
-  * [ ] Mensagem recebida
-  * [ ] Status de envio
+  * [x] Mensagem recebida
+  * [x] Status de envio
 
 ---
 
@@ -99,7 +99,7 @@ description: Acompanhamento do progresso do desenvolvimento do projeto Zapi
 - [ ] Adicionar logs estruturados (pino ou outro)
 - [ ] Captura de erros centralizada
 - [ ] Melhorar resposta de erros (status codes + mensagens claras)
-- [ ] Criar health-check para Docker/infra
+- [x] Criar health-check para Docker/infra
 
 ---
 

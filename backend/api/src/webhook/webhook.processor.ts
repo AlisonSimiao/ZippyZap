@@ -1,6 +1,6 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosInstance } from 'axios';
 import { Job } from 'bullmq';
 import crypto from 'crypto';
 import { format } from 'date-fns';
@@ -11,7 +11,7 @@ import { EProcessor } from '../queue-board/queue-board.module';
 interface IWebhookJob {
   idUser: string;
   type: string;
-  data: any;
+  data: Record<string, any>;
 }
 
 interface IWebhookData {
@@ -75,14 +75,14 @@ export class WebhookProcessor extends WorkerHost {
 
       if (!webhook) {
         this.logger.log(
-          `No active webhook found for user ${job.data.idUser} with event ${job.data.type}`
+          `No active webhook found for user ${job.data.idUser} with event ${job.data.type}`,
         );
         return;
       }
 
       if (!webhook.user.ApiKeys || webhook.user.ApiKeys.length === 0) {
         this.logger.log(
-          `User ${job.data.idUser} has no active API Keys for signing`
+          `User ${job.data.idUser} has no active API Keys for signing`,
         );
         return;
       }
@@ -97,7 +97,7 @@ export class WebhookProcessor extends WorkerHost {
       await this.redis.setWithExpiration(
         cacheKey,
         JSON.stringify(webhookData),
-        300
+        300,
       );
     } else {
       webhookData = JSON.parse(cachedData) as IWebhookData;
@@ -115,7 +115,7 @@ export class WebhookProcessor extends WorkerHost {
     const start = Date.now();
     let status = 0;
     let responseBody = '';
-    let errorMsg = null;
+    let errorMsg: string = '';
 
     try {
       const response = await this.http.post(webhookData.url, payload, {
@@ -129,15 +129,25 @@ export class WebhookProcessor extends WorkerHost {
       responseBody = JSON.stringify(response.data).substring(0, 1000); // Truncate if too long
 
       this.logger.log(
-        `Webhook ${webhookData.id} sent successfully for event ${job.data.type}`
+        `Webhook ${webhookData.id} sent successfully for event ${job.data.type}`,
       );
     } catch (error) {
-      status = error.response?.status || 500;
-      errorMsg = error.message;
-      responseBody = error.response?.data ? JSON.stringify(error.response.data).substring(0, 1000) : error.message;
-
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response) {
+          status = axiosError.response.status;
+          responseBody = JSON.stringify(axiosError.response.data).substring(
+            0,
+            1000,
+          );
+        }
+      } else {
+        status = 500;
+        errorMsg = (error as Error).message || '';
+        responseBody = error.message;
+      }
       this.logger.error(
-        `Failed to send webhook ${webhookData.id}: ${error.message}`
+        `Failed to send webhook ${webhookData.id}: ${error.message}`,
       );
       // Don't throw yet, we want to log first
     } finally {
@@ -150,8 +160,8 @@ export class WebhookProcessor extends WorkerHost {
           payload: payload as any,
           status,
           response: responseBody,
-          duration
-        }
+          duration,
+        },
       });
 
       if (errorMsg) {

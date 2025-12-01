@@ -9,8 +9,8 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 ---
 
 ### 📊 **Progresso Atual**
-![Progress](https://progress-bar.dev/49)
-**49% Concluído** (35 de 72 tarefas)
+![Progress](https://progress-bar.dev/51)
+**51% Concluído** (37 de 72 tarefas)
 
 ---
 
@@ -99,7 +99,7 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 - [ ] Adicionar logs estruturados (pino ou outro)
 - [ ] Captura de erros centralizada
 - [ ] Melhorar resposta de erros (status codes + mensagens claras)
-- [ ] Criar health-check para Docker/infra
+- [x] Criar health-check para Docker/infra
 
 ---
 
