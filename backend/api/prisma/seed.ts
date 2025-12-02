@@ -12,18 +12,21 @@ async function createPlains(logger: Logger) {
       name: 'Gratuito',
       dailyLimit: 50,
       monthlyLimit: 1500,
+      sessionLimit: 1,
       price: 0,
     },
     {
       name: 'Básico',
       dailyLimit: 2500,
       monthlyLimit: 50000,
+      sessionLimit: 1,
       price: 39.9,
     },
     {
       name: 'Premium',
       dailyLimit: 999999999,
       monthlyLimit: 999999999,
+      sessionLimit: 1,
       price: 99.9,
     },
   ];

@@ -63,6 +63,7 @@ model Plan {
   name         String   @unique
   dailyLimit   Int      @default(0) @db.Integer
   monthlyLimit Int      @default(0) @db.Integer
+  sessionLimit Int      @default(1) @db.Integer
   price        Decimal  @db.Decimal(10, 2)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())

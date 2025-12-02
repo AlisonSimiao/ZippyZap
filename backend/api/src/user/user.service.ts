@@ -119,6 +119,33 @@ export class UserService {
   }
 
   async createWhatsAppSession(idUser: string) {
+    // Buscar o usuário e seu plano para verificar o limite de sessões
+    const user = await this.prisma.user.findUnique({
+      where: { id: parseInt(idUser) },
+      include: { Plan: {
+        select: {
+          name: true,
+          sessionLimit: true,
+        },
+      } },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    // Verificar se já existe uma sessão ativa
+    const currentStatus = await this.redisService.get(`user:${idUser}:status`);
+
+    if (currentStatus && currentStatus !== 'disconnected') {
+      // Se o limite de sessões é 1 e já existe uma sessão ativa
+      if (user.Plan.sessionLimit === 1) {
+        throw new ConflictException(
+          `Limite de sessões atingido. Seu plano "${user.Plan.name}" permite apenas ${user.Plan.sessionLimit} sessão ativa. Status atual: ${currentStatus}`
+        );
+      }
+    }
+
     await this.queue.add('create-user', {
       idUser,
     });
