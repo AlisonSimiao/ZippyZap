@@ -10,7 +10,6 @@ interface IJobData {
   apiKeyHash?: string;
 }
 
-
 @Processor(EProcessor.CREATE_USER)
 export class UserCreate extends WorkerHost {
   constructor(
@@ -31,7 +30,9 @@ export class UserCreate extends WorkerHost {
       // Get API key hash from Redis if not provided
       let userApiKeyHash = apiKeyHash;
       if (!userApiKeyHash) {
-        const apiKeyFromRedis = await this.redisService.get(`user:${idUser}:apikey`);
+        const apiKeyFromRedis = await this.redisService.get(
+          `user:${idUser}:apikey`,
+        );
         if (!apiKeyFromRedis) {
           throw new Error('API key not found for user');
         }
@@ -46,7 +47,10 @@ export class UserCreate extends WorkerHost {
 
       this.logger.log(`Session creation initiated for user ${idUser}`);
     } catch (error) {
-      this.logger.error(`Failed to create session for ${idUser}:`, error.message);
+      this.logger.error(
+        `Failed to create session for ${idUser}:`,
+        error.message,
+      );
       throw error;
     }
 

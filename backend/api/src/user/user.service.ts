@@ -21,7 +21,7 @@ export class UserService {
     private jwtService: JwtService,
     @InjectQueue('create-user') private queue: Queue,
     private redisService: RedisService,
-  ) { }
+  ) {}
 
   async login(body: LoginhDto): Promise<ResponseLogin> {
     const user = await this.prisma.user.findUnique({
@@ -92,7 +92,6 @@ export class UserService {
     idUser: string,
   ): Promise<{ status: string; qr: string }> {
     const qrData = await this.redisService.get(`user:${idUser}:qrcode`);
-    console.log({qrData})
     if (!qrData) {
       throw new NotFoundException(
         'QR code not found',
@@ -128,7 +127,7 @@ export class UserService {
             name: true,
             sessionLimit: true,
           },
-        }
+        },
       },
     });
 
@@ -143,7 +142,7 @@ export class UserService {
       // Se o limite de sessões é 1 e já existe uma sessão ativa
       if (user.Plan.sessionLimit === 1) {
         throw new ConflictException(
-          `Limite de sessões atingido. Seu plano "${user.Plan.name}" permite apenas ${user.Plan.sessionLimit} sessão ativa. Status atual: ${currentStatus}`
+          `Limite de sessões atingido. Seu plano "${user.Plan.name}" permite apenas ${user.Plan.sessionLimit} sessão ativa. Status atual: ${currentStatus}`,
         );
       }
     }
@@ -205,5 +204,21 @@ export class UserService {
     const status =
       (await this.redisService.get(`user:${idUser}:status`)) || 'disconnected';
     return { status };
+  }
+
+  async logout(idUser: string) {
+    // Check if session exists
+    const status = await this.redisService.get(`user:${idUser}:status`);
+    if (!status && !(await this.redisService.get(`user:${idUser}:qrcode`))) {
+      // If no status and no QR code, consider already disconnected
+      return { success: true, message: 'Already disconnected' };
+    }
+
+    // Clear session data from Redis
+    await this.redisService.delete(`user:${idUser}:status`);
+    await this.redisService.delete(`user:${idUser}:qrcode`);
+    await this.redisService.delete(`user:${idUser}:apikey`);
+
+    return { success: true, message: 'Logout completed' };
   }
 }

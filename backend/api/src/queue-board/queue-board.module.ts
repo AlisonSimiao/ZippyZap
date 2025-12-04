@@ -7,6 +7,7 @@ export enum EProcessor {
   CREATE_USER = 'create-user',
   SEND_MESSAGE = 'send-message',
   WEBHOOK = 'webhook',
+  SESSION_LOGOUT = 'session-logout',
 }
 
 @Module({
@@ -27,6 +28,10 @@ export enum EProcessor {
       name: EProcessor.WEBHOOK,
       adapter: BullMQAdapter,
     }),
+    BullBoardModule.forFeature({
+      name: EProcessor.SESSION_LOGOUT,
+      adapter: BullMQAdapter,
+    }),
     BullModule.registerQueue({
       name: EProcessor.CREATE_USER,
     }),
@@ -42,6 +47,9 @@ export enum EProcessor {
           delay: 5000,
         },
       },
+    }),
+    BullModule.registerQueue({
+      name: EProcessor.SESSION_LOGOUT,
     }),
   ],
 })

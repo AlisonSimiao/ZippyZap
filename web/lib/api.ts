@@ -128,6 +128,12 @@ class ApiClient {
     }).then(({ data }) => data);
   }
 
+  async logoutWhatsApp(apiKey: string): Promise<void> {
+    return this.client.delete('/whatsapp/session', {
+      headers: { 'x-api-key': apiKey }
+    }).then(() => undefined);
+  }
+
   // Webhook methods
   async getWebhook(accessToken: string): Promise<IWebhook | null> {
     return this.client.get<IWebhook>('/webhooks', {

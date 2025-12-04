@@ -42,14 +42,25 @@ services:
   #     - redis
 
   wuzapi:
-    image: asternic/wuzapi:latest
+    image: asternic/wuzapi
     container_name: zapi-wuzapi
-    environment:
-      - WUZAPI_ADMIN_TOKEN=${WUZAPI_ADMIN_TOKEN:-your-secure-admin-token-here}
     ports:
-      - "8081:8080"
+      - "8082:8080"
+    environment:
+      - WUZAPI_ADMIN_TOKEN=${WUZAPI_ADMIN_TOKEN}
+      - WUZAPI_GLOBAL_ENCRYPTION_KEY=${WUZAPI_GLOBAL_ENCRYPTION_KEY}
+      - WUZAPI_GLOBAL_HMAC_KEY=${WUZAPI_GLOBAL_HMAC_KEY}
+      - DB_USER=${WUZAPI_DB_USER:-wuzapi}
+      - DB_PASSWORD=${WUZAPI_DB_PASSWORD:-wuzapi}
+      - DB_NAME=${WUZAPI_DB_NAME:-wuzapi}
+      - DB_HOST=${WUZAPI_DB_HOST:-zapi-postgres}
+      - DB_PORT=${WUZAPI_DB_PORT:-5432}
+      - TZ=America/Sao_Paulo
     volumes:
-      - ./.data/wuzapi:/app/data
+      - ./.data/wuzapi/dbdata:/app/dbdata
+      - ./.data/wuzapi/files:/app/files
+    depends_on:
+      - postgres
     restart: unless-stopped
 
   postgres:
@@ -63,6 +74,7 @@ services:
       - "5432:5432"
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
+      - ./init-wuzapi-db.sql:/docker-entrypoint-initdb.d/init-wuzapi-db.sql
 
   redis:
     image: redis:7-alpine

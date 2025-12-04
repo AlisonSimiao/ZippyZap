@@ -35,6 +35,7 @@ export default function WhatsAppPage() {
     const [qrCode, setQrCode] = useState<string>('')
     const [status, setStatus] = useState<WhatsAppStatus>('disconnected')
     const [loading, setLoading] = useState(false)
+    const [initializing, setInitializing] = useState(true)
 
 
 
@@ -49,12 +50,24 @@ export default function WhatsAppPage() {
 
     // Load stored API key on mount and check initial status
     useEffect(() => {
-        const storedApiKey = localStorage.getItem('selectedApiKey')
-        if (storedApiKey) {
-            setApiKey(storedApiKey)
-            // Check initial status
-            checkStatus(storedApiKey)
+        const loadInitialStatus = async () => {
+            const storedApiKey = localStorage.getItem('selectedApiKey')
+            if (storedApiKey) {
+                setApiKey(storedApiKey)
+                try {
+                    const response = await api.getWhatsAppStatus(storedApiKey)
+                    setStatus(response.status as WhatsAppStatus)
+                    if (response.status === 'connected') {
+                        setSessionCreated(true)
+                    }
+                } catch (err) {
+                    console.error('Error checking initial status:', err)
+                    setStatus('disconnected')
+                }
+            }
+            setInitializing(false)
         }
+        loadInitialStatus()
     }, [])
 
     // Check connection status
@@ -69,12 +82,10 @@ export default function WhatsAppPage() {
             }
         } catch (err: any) {
             console.error('Error checking status:', err)
-            // If status check fails, assume disconnected
             setStatus('disconnected')
         }
     }, [])
 
-    // Poll for QR code when session is created but not connected
     // Poll for QR code when session is created but not connected
     const pollQRCode = useCallback(async () => {
         if (!apiKey) return
@@ -83,6 +94,11 @@ export default function WhatsAppPage() {
             const response = await api.getWhatsAppQRCode(apiKey)
             setQrCode(response.qr)
             setStatus(response.status as WhatsAppStatus)
+
+            // If connected, clear QR code
+            if (response.status === 'connected') {
+                setQrCode('')
+            }
         } catch (err: any) {
             console.error('Error polling QR code:', err)
             // Don't show error if it's just waiting for QR code
@@ -92,23 +108,43 @@ export default function WhatsAppPage() {
         }
     }, [apiKey])
 
-    // Start polling when session is created
-    // Start polling when session is created
+    // Poll status when connected to keep it updated
+    const pollStatus = useCallback(async () => {
+        if (!apiKey) return
+
+        try {
+            const response = await api.getWhatsAppStatus(apiKey)
+            setStatus(response.status as WhatsAppStatus)
+
+            // If disconnected, clear session
+            if (response.status === 'disconnected') {
+                setSessionCreated(false)
+                setQrCode('')
+            }
+        } catch (err: any) {
+            console.error('Error polling status:', err)
+        }
+    }, [apiKey])
+
+    // Start polling based on connection state
     useEffect(() => {
         let interval: NodeJS.Timeout
 
-        if (sessionCreated && status !== 'connected' && apiKey) {
-            // Initial fetch
-            pollQRCode()
-
-            // Set up polling every 3 seconds
-            interval = setInterval(pollQRCode, 3000)
+        if (sessionCreated && apiKey) {
+            if (status === 'connected') {
+                // Poll status every 10 seconds when connected
+                interval = setInterval(pollStatus, 10000)
+            } else {
+                // Poll QR code every 3 seconds when not connected
+                pollQRCode()
+                interval = setInterval(pollQRCode, 3000)
+            }
         }
 
         return () => {
             if (interval) clearInterval(interval)
         }
-    }, [sessionCreated, status, apiKey, pollQRCode])
+    }, [sessionCreated, status, apiKey, pollQRCode, pollStatus])
 
     const handleCreateSession = async () => {
         if (!apiKey) {
@@ -168,6 +204,27 @@ export default function WhatsAppPage() {
             toast.error(err.response?.data?.message || 'Erro ao enviar mensagem')
         } finally {
             setSendingMessage(false)
+        }
+    }
+
+    const handleLogout = async () => {
+        if (!apiKey) {
+            toast.error('Por favor, insira uma API Key')
+            return
+        }
+
+        setLoading(true)
+
+        try {
+            await api.logoutWhatsApp(apiKey)
+            toast.success('Desconectado com sucesso!')
+            setStatus('disconnected')
+            setSessionCreated(false)
+            setQrCode('')
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Erro ao desconectar')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -253,7 +310,14 @@ export default function WhatsAppPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {!sessionCreated ? (
+                            {initializing ? (
+                                <div className="text-center py-8">
+                                    <Loader2 className="h-16 w-16 text-blue-500 mx-auto mb-4 animate-spin" />
+                                    <p className="text-gray-600">
+                                        Carregando status...
+                                    </p>
+                                </div>
+                            ) : !sessionCreated ? (
                                 <div className="text-center py-8">
                                     <MessageSquare className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                                     <p className="text-gray-600 mb-4">
@@ -282,9 +346,26 @@ export default function WhatsAppPage() {
                                     <p className="text-lg font-medium text-green-600 mb-2">
                                         WhatsApp Conectado!
                                     </p>
-                                    <p className="text-gray-600">
+                                    <p className="text-gray-600 mb-4">
                                         Você pode enviar mensagens agora
                                     </p>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={handleLogout}
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Desconectando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <WifiOff className="mr-2 h-4 w-4" />
+                                                Desconectar
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
                             ) : qrCode ? (
                                 <div className="text-center py-4">

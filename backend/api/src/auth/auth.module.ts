@@ -1,16 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
-import { UserService } from 'src/user/user.service';
-import { BullModule } from '@nestjs/bullmq';
-import { RedisService } from 'src/redis/redis.service';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [
-    BullModule.registerQueue({
-      name: 'create-user',
-    }),
-  ],
+  imports: [UserModule],
   controllers: [AuthController],
-  providers: [UserService, RedisService],
+  providers: [],
 })
-export class AuthModule {}
+export class AuthModule { }

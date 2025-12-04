@@ -24,13 +24,6 @@ import { DashboardModule } from './dashboard/dashboard.module';
 @Module({
   imports: [
     PrismaModule,
-    AuthModule,
-    UserModule,
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.JWT_EXPIRE },
-    }),
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST,
@@ -38,6 +31,13 @@ import { DashboardModule } from './dashboard/dashboard.module';
         username: process.env.REDIS_USER,
         password: process.env.REDIS_PASS,
       },
+    }),
+    AuthModule,
+    UserModule,
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_EXPIRE },
     }),
     PlanModule,
     PaymentModule,

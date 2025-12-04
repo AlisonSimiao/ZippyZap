@@ -4,245 +4,293 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 
 interface WuzapiUser {
-    name: string;
-    token: string;
-    webhook?: string;
-    events?: string;
+  name: string;
+  token: string;
+  webhook?: string;
+  events?: string;
 }
 
 interface WuzapiQRResponse {
-    qrcode?: string;
-    message?: string;
+  qrcode?: string;
+  message?: string;
 }
 
 interface WuzapiStatusResponse {
-    connected: boolean;
-    session?: string;
+  connected: boolean;
+  session?: string;
 }
 
 @Injectable()
 export class WuzapiClientService {
-    private readonly logger = new Logger(WuzapiClientService.name);
-    private readonly baseUrl: string;
-    private readonly adminToken: string;
+  private readonly logger = new Logger(WuzapiClientService.name);
+  private readonly baseUrl: string;
+  private readonly adminToken: string;
 
-    constructor(
-        private readonly httpService: HttpService,
-        private readonly configService: ConfigService,
-    ) {
-        this.baseUrl = this.configService.get<string>('WUZAPI_BASE_URL') || 'http://wuzapi:8080';
-        this.adminToken = this.configService.get<string>('WUZAPI_ADMIN_TOKEN') || '';
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    this.baseUrl =
+      this.configService.get<string>('WUZAPI_BASE_URL') || 'http://wuzapi:8080';
+    this.adminToken =
+      this.configService.get<string>('WUZAPI_ADMIN_TOKEN') || '';
 
-        this.logger.log(`WuzAPI Configuration - Base URL: ${this.baseUrl}, Admin Token: ${this.adminToken ? '***' : 'NOT SET'}`);
+    this.logger.log(
+      `WuzAPI Configuration - Base URL: ${this.baseUrl}, Admin Token: ${this.adminToken ? '***' : 'NOT SET'}`,
+    );
 
-        if (!this.adminToken) {
-            throw new Error('WUZAPI_ADMIN_TOKEN not configured!');
-        }
-
-        if (!this.baseUrl) {
-            throw new Error('WUZAPI_BASE_URL not configured!');
-        }
+    if (!this.adminToken) {
+      throw new Error('WUZAPI_ADMIN_TOKEN not configured!');
     }
 
-    /**
-     * Create a user in WuzAPI
-     * @param userId - User ID from Zapi (used as WuzAPI user name)
-     * @param apiKeyHash - API key hash (used as WuzAPI token)
-     */
-    async createWuzapiUser(userId: string, apiKeyHash: string): Promise<void> {
-        try {
-            const userData: WuzapiUser = {
-                name: userId,
-                token: apiKeyHash,
-                webhook: 'http://localhost:8080/webhook',
-            };
-
-            const res = await firstValueFrom(
-                this.httpService.post(`${this.baseUrl}/admin/users`, userData, {
-                    headers: {
-                        Authorization: this.adminToken,
-                        'Content-Type': 'application/json',
-                    },
-                }),
-            );
-            console.log(res)
-            this.logger.log(`WuzAPI user created: ${userId}`);
-        } catch (error: any) {
-            if (error.response?.status === 409 || error.response?.data?.code === 409) {
-                this.logger.warn(`User ${userId} already exists in WuzAPI, skipping creation.`);
-                return;
-            }
-            this.logger.error(`Failed to create WuzAPI user ${userId}:`, error?.response?.data || error?.message || error);
-            throw error;
-        }
+    if (!this.baseUrl) {
+      throw new Error('WUZAPI_BASE_URL not configured!');
     }
+  }
 
-    /**
-     * Delete a user from WuzAPI
-     * @param userId - User ID to delete
-     */
-    async deleteWuzapiUser(userId: string): Promise<void> {
-        try {
-            await firstValueFrom(
-                this.httpService.delete(`${this.baseUrl}/admin/users/${userId}`, {
-                    headers: {
-                        Authorization: this.adminToken,
-                    },
-                }),
-            );
+  /**
+   * Create a user in WuzAPI
+   * @param userId - User ID from Zapi (used as WuzAPI user name)
+   * @param apiKeyHash - API key hash (used as WuzAPI token)
+   */
+  async createWuzapiUser(userId: string, apiKeyHash: string): Promise<void> {
+    try {
+      const userData: WuzapiUser = {
+        name: userId,
+        token: apiKeyHash,
+        webhook: process.env.WUZAPI_WEBHOOK_URL,
+        events: 'All',
+      };
 
-            this.logger.log(`WuzAPI user deleted: ${userId}`);
-        } catch (error: any) {
-            this.logger.error(`Failed to delete WuzAPI user ${userId}:`, error?.response?.data || error?.message || error);
-            throw error;
-        }
+      const res = await firstValueFrom(
+        this.httpService.post(`${this.baseUrl}/admin/users`, userData, {
+          headers: {
+            Authorization: this.adminToken,
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+      console.log(res);
+      this.logger.log(`WuzAPI user created: ${userId}`);
+    } catch (error: any) {
+      if (
+        error.response?.status === 409 ||
+        error.response?.data?.code === 409
+      ) {
+        this.logger.warn(
+          `User ${userId} already exists in WuzAPI, skipping creation.`,
+        );
+        return;
+      }
+      this.logger.error(
+        `Failed to create WuzAPI user ${userId}:`,
+        error?.response?.data || error?.message || error,
+      );
+      throw error;
     }
+  }
 
-    /**
-     * Get QR code for WhatsApp session
-     * @param userId - User ID
-     * @param apiKeyHash - User's API key hash (token)
-     */
-    async getQRCode(userId: string, apiKeyHash: string): Promise<string | null> {
-        try {
-            const response = await firstValueFrom(
-                this.httpService.get<WuzapiQRResponse>(`${this.baseUrl}/session/qr`, {
-                    headers: {
-                        token: apiKeyHash,
-                    },
-                }),
-            );
+  /**
+   * Delete a user from WuzAPI
+   * @param userId - User ID to delete
+   */
+  async deleteWuzapiUser(userId: string): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.httpService.delete(`${this.baseUrl}/admin/users/${userId}`, {
+          headers: {
+            Authorization: this.adminToken,
+          },
+        }),
+      );
 
-            return response.data.qrcode || null;
-        } catch (error: any) {
-            this.logger.error(`Failed to get QR code for ${userId}:`, error?.response?.data || error?.message || error);
-            return null;
-        }
+      this.logger.log(`WuzAPI user deleted: ${userId}`);
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to delete WuzAPI user ${userId}:`,
+        error?.response?.data || error?.message || error,
+      );
+      throw error;
     }
+  }
 
-    /**
-     * Send a text message via WuzAPI
-     * @param userId - User ID
-     * @param apiKeyHash - User's API key hash (token)
-     * @param to - Recipient phone number
-     * @param text - Message text
-     */
-    async sendMessage(
-        userId: string,
-        apiKeyHash: string,
-        to: string,
-        text: string,
-    ): Promise<void> {
-        try {
-            await firstValueFrom(
-                this.httpService.post(
-                    `${this.baseUrl}/chat/send/text`,
-                    {
-                        Phone: to,
-                        Body: text,
-                    },
-                    {
-                        headers: {
-                            token: apiKeyHash,
-                            'Content-Type': 'application/json',
-                        },
-                    },
-                ),
-            );
+  /**
+   * Get QR code for WhatsApp session
+   * @param userId - User ID
+   * @param apiKeyHash - User's API key hash (token)
+   */
+  async getQRCode(userId: string, apiKeyHash: string): Promise<string | null> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get<WuzapiQRResponse>(`${this.baseUrl}/session/qr`, {
+          headers: {
+            token: apiKeyHash,
+          },
+        }),
+      );
 
-            this.logger.log(`Message sent via WuzAPI for user ${userId} to ${to}`);
-        } catch (error: any) {
-            this.logger.error(
-                `Failed to send message for ${userId}:`,
-                error?.response?.data || error?.message || error,
-            );
-            throw error;
-        }
+      return response.data.qrcode || null;
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to get QR code for ${userId}:`,
+        error?.response?.data || error?.message || error,
+      );
+      return null;
     }
+  }
 
-    /**
-     * Get connection status for a user
-     * @param userId - User ID
-     * @param apiKeyHash - User's API key hash (token)
-     */
-    async getConnectionStatus(
-        userId: string,
-        apiKeyHash: string,
-    ): Promise<'connected' | 'disconnected'> {
-        try {
-            const response = await firstValueFrom(
-                this.httpService.get<WuzapiStatusResponse>(`${this.baseUrl}/session/status`, {
-                    headers: {
-                        token: apiKeyHash,
-                    },
-                }),
-            );
+  /**
+   * Send a text message via WuzAPI
+   * @param userId - User ID
+   * @param apiKeyHash - User's API key hash (token)
+   * @param to - Recipient phone number
+   * @param text - Message text
+   */
+  async sendMessage(
+    userId: string,
+    apiKeyHash: string,
+    to: string,
+    text: string,
+  ): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.httpService.post(
+          `${this.baseUrl}/chat/send/text`,
+          {
+            Phone: to,
+            Body: text,
+          },
+          {
+            headers: {
+              token: apiKeyHash,
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      );
 
-            return response.data.connected ? 'connected' : 'disconnected';
-        } catch (error: any) {
-            this.logger.error(
-                `Failed to get status for ${userId}:`,
-                error?.response?.data || error?.message || error,
-            );
-            return 'disconnected';
-        }
+      this.logger.log(`Message sent via WuzAPI for user ${userId} to ${to}`);
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to send message for ${userId}:`,
+        error?.response?.data || error?.message || error,
+      );
+      throw error;
     }
+  }
 
-    /**
-     * Logout from WhatsApp session
-     * @param userId - User ID
-     * @param apiKeyHash - User's API key hash (token)
-     */
-    async logout(userId: string, apiKeyHash: string): Promise<void> {
-        try {
-            await firstValueFrom(
-                this.httpService.post(
-                    `${this.baseUrl}/session/logout`,
-                    {},
-                    {
-                        headers: {
-                            token: apiKeyHash,
-                        },
-                    },
-                ),
-            );
+  /**
+   * Get connection status for a user
+   * @param userId - User ID
+   * @param apiKeyHash - User's API key hash (token)
+   */
+  async getConnectionStatus(
+    userId: string,
+    apiKeyHash: string,
+  ): Promise<'connected' | 'disconnected'> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get<WuzapiStatusResponse>(
+          `${this.baseUrl}/session/status`,
+          {
+            headers: {
+              token: apiKeyHash,
+            },
+          },
+        ),
+      );
 
-            this.logger.log(`User ${userId} logged out from WuzAPI`);
-        } catch (error: any) {
-            this.logger.error(`Failed to logout ${userId}:`, error?.response?.data || error?.message || error);
-            throw error;
-        }
+      return response.data.connected ? 'connected' : 'disconnected';
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to get status for ${userId}:`,
+        error?.response?.data || error?.message || error,
+      );
+      return 'disconnected';
     }
+  }
 
-    /**
-     * Start a WhatsApp session (connect)
-     * @param userId - User ID
-     * @param apiKeyHash - User's API key hash (token)
-     */
-    async startSession(userId: string, apiKeyHash: string): Promise<void> {
-        try {
-            await firstValueFrom(
-                this.httpService.post(
-                    `${this.baseUrl}/session/connect`,
-                    {
-                        Subscribe: ["Message", "ReadReceipt", "Presence", "Group"],
-                        Immediate: true
-                    },
-                    {
-                        headers: {
-                            token: apiKeyHash,
-                        },
-                    },
-                ),
-            );
+  /**
+   * Logout from WhatsApp session
+   * @param userId - User ID
+   * @param apiKeyHash - User's API key hash (token)
+   */
+  async logout(userId: string, apiKeyHash: string): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.httpService.post(
+          `${this.baseUrl}/session/logout`,
+          {},
+          {
+            headers: {
+              token: apiKeyHash,
+            },
+          },
+        ),
+      );
 
-            this.logger.log(`Session started for user ${userId}`);
-        } catch (error: any) {
-            this.logger.error(
-                `Failed to start session for ${userId}:`,
-                error?.response?.data || error?.message || error,
-            );
-            throw error;
-        }
+      this.logger.log(`User ${userId} logged out from WuzAPI`);
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to logout ${userId}:`,
+        error?.response?.data || error?.message || error,
+      );
+      throw error;
     }
+  }
+
+  /**
+   * Start a WhatsApp session (connect)
+   * @param userId - User ID
+   * @param apiKeyHash - User's API key hash (token)
+   */
+  async startSession(userId: string, apiKeyHash: string): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.httpService.post(
+          `${this.baseUrl}/session/connect`,
+          {
+            Subscribe: [
+              'Message',
+              'ReadReceipt',
+              'Presence',
+              'ChatPresence',
+              'HistorySync',
+              'Group',
+              'Receipt',
+              'UndecryptableMessage',
+              'MediaRetry',
+              'QR',
+
+              // 🔥 eventos de status que estavam faltando
+              'Status',
+              'Connection',
+              'Ready',
+              'Authenticated',
+              'Disconnected',
+              'Logout',
+              'AuthFailure',
+            ],
+
+            Immediate: true,
+          },
+          {
+            headers: {
+              token: apiKeyHash,
+            },
+          },
+        ),
+      );
+
+      this.logger.log(
+        `Session started for user ${userId} with all events subscribed`,
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to start session for ${userId}:`,
+        error?.response?.data || error?.message || error,
+      );
+      throw error;
+    }
+  }
 }

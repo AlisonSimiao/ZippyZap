@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Delete, Req } from '@nestjs/common';
 import { WhatsappService } from './whatsapp.service';
 import { SendMessageDto } from './dto/send-message.dto';
 import { Request } from 'express';
@@ -16,13 +16,10 @@ export class WhatsappController {
   constructor(
     private readonly whatsappService: WhatsappService,
     private readonly userService: UserService,
-  ) { }
+  ) {}
 
   @Post()
-  async sendMessage(
-    @Body() body: SendMessageDto,
-    @Req() req: ApiKeyRequest,
-  ) {
+  async sendMessage(@Body() body: SendMessageDto, @Req() req: ApiKeyRequest) {
     const { to: phone, message: text } = body;
 
     const userId = req.apiKey.userId.toString();
@@ -42,6 +39,11 @@ export class WhatsappController {
       req.apiKey.userId.toString(),
       req.headers['x-api-key'] as string,
     );
+  }
+
+  @Delete('session')
+  logoutWhatsAppSession(@Req() req: ApiKeyRequest) {
+    return this.userService.logout(req.apiKey.userId.toString());
   }
 
   @Get('status')
