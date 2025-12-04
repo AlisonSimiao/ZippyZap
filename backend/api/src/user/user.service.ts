@@ -92,7 +92,7 @@ export class UserService {
     idUser: string,
   ): Promise<{ status: string; qr: string }> {
     const qrData = await this.redisService.get(`user:${idUser}:qrcode`);
-
+    console.log({qrData})
     if (!qrData) {
       throw new NotFoundException(
         'QR code not found',
@@ -118,16 +118,18 @@ export class UserService {
     };
   }
 
-  async createWhatsAppSession(idUser: string) {
+  async createWhatsAppSession(idUser: string, apiKeyHash?: string) {
     // Buscar o usuário e seu plano para verificar o limite de sessões
     const user = await this.prisma.user.findUnique({
       where: { id: parseInt(idUser) },
-      include: { Plan: {
-        select: {
-          name: true,
-          sessionLimit: true,
-        },
-      } },
+      include: {
+        Plan: {
+          select: {
+            name: true,
+            sessionLimit: true,
+          },
+        }
+      },
     });
 
     if (!user) {
@@ -146,8 +148,14 @@ export class UserService {
       }
     }
 
+    // Store API key hash in Redis if provided
+    if (apiKeyHash) {
+      await this.redisService.set(`user:${idUser}:apikey`, apiKeyHash);
+    }
+
     await this.queue.add('create-user', {
       idUser,
+      apiKeyHash,
     });
 
     return {

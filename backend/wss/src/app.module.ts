@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
 import { BullModule } from '@nestjs/bullmq';
 import { QueueModule } from './queues/queue.module';
@@ -6,6 +7,10 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     BullModule.forRoot({
       connection: {
         host: 'localhost',
@@ -27,4 +32,4 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
   controllers: [],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

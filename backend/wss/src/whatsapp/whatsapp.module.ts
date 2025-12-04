@@ -1,11 +1,11 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { WhatsappService } from './whatsapp.service';
-import { RedisService } from 'src/redis/redis.service';
-
+import { RedisModule } from 'src/redis/redis.module';
+import { WuzapiClientService } from './wuzapi-client.service';
 @Module({
-  imports: [],
+  imports: [HttpModule, RedisModule],
+  providers: [WuzapiClientService],
   controllers: [],
-  providers: [WhatsappService, RedisService],
-  exports: [WhatsappService],
+  exports: [WuzapiClientService],
 })
 export class WhatsappModule { }

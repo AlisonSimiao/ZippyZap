@@ -59,7 +59,7 @@ export class AppModule implements NestModule {
         { path: '/auth/*path', method: RequestMethod.POST },
         { path: '/plans', method: RequestMethod.GET },
         { path: '/health', method: RequestMethod.GET },
-        { path: '/whatsapp', method: RequestMethod.ALL },
+        { path: '/webhooks/(.*)', method: RequestMethod.ALL },
         { path: '/whatsapp/(.*)', method: RequestMethod.ALL },
         { path: '/payments/webhook', method: RequestMethod.POST },
       )

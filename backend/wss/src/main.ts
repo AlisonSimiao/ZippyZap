@@ -10,7 +10,6 @@ async function bootstrap() {
   await app.listen().then(() => {
     console.log('Microservice is running');
   });
-
 }
 
 void bootstrap();

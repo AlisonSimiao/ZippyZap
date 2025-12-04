@@ -1,18 +1,23 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
-import { WhatsappService } from 'src/whatsapp/whatsapp.service';
+import { WuzapiClientService } from 'src/whatsapp/wuzapi-client.service';
+import { RedisService } from 'src/redis/redis.service';
 import { EProcessor } from '../types';
 
 interface IJobData {
   idUser: string;
   telefone: string;
   text: string;
+  apiKeyHash?: string;
 }
 
 @Processor(EProcessor.SEND_MESSAGE)
 export class SendMessage extends WorkerHost {
-  constructor(private readonly whatsappService: WhatsappService) {
+  constructor(
+    private readonly wuzapiClient: WuzapiClientService,
+    private readonly redisService: RedisService,
+  ) {
     super();
   }
 
@@ -21,19 +26,23 @@ export class SendMessage extends WorkerHost {
   async process(job: Job<IJobData>): Promise<any> {
     this.logger.log(`Processing job: ${job.id}`, job.data);
 
-    const { idUser, telefone, text } = job.data;
+    const { idUser, telefone, text, apiKeyHash } = job.data;
 
     try {
-      await this.whatsappService.sendMessage(idUser, telefone, text);
+      // Get API key hash from Redis if not provided
+      let userApiKeyHash = apiKeyHash;
+      if (!userApiKeyHash) {
+        const apiKeyFromRedis = await this.redisService.get(`user:${idUser}:apikey`);
+        if (!apiKeyFromRedis) {
+          throw new Error('API key not found for user');
+        }
+        userApiKeyHash = apiKeyFromRedis;
+      }
+
+      await this.wuzapiClient.sendMessage(idUser, userApiKeyHash, telefone, text);
       this.logger.log(`Message sent successfully: ${job.id}`);
     } catch (error) {
       this.logger.error(`Failed to send message: ${job.id}`, error.message);
-
-      // Se for erro de stack overflow, não fazer retry
-      if (error.message.includes('Maximum call stack size exceeded')) {
-        throw new Error('WhatsApp session error - session needs restart');
-      }
-
       throw error;
     }
 

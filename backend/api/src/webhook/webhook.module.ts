@@ -8,6 +8,8 @@ import { WebhookController } from './webhook.controller';
 import { WebhookDispatcherService } from './webhook-dispatcher.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
+import { WuzapiWebhookController } from './wuzapi-webhook.controller';
+
 @Module({
   imports: [
     QueueBoardModule,
@@ -16,7 +18,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
       name: EProcessor.WEBHOOK,
     }),
   ],
-  controllers: [WebhookController],
+  controllers: [WebhookController, WuzapiWebhookController],
   providers: [RedisService, WebhookProcessor, WebhookService, WebhookDispatcherService],
   exports: [WebhookProcessor, WebhookService, WebhookDispatcherService],
 })

@@ -4,17 +4,24 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { Request } from 'express';
 import { UserService } from 'src/user/user.service';
 
+interface ApiKeyRequest extends Request {
+  apiKey: {
+    userId: number;
+    hash: string;
+  };
+}
+
 @Controller('whatsapp')
 export class WhatsappController {
   constructor(
     private readonly whatsappService: WhatsappService,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   @Post()
   async sendMessage(
     @Body() body: SendMessageDto,
-    @Req() req: Request & { apiKey: { userId: number } },
+    @Req() req: ApiKeyRequest,
   ) {
     const { to: phone, message: text } = body;
 
@@ -25,17 +32,20 @@ export class WhatsappController {
   }
 
   @Get('qrcode')
-  getWhatsAppQRCode(@Req() req: Request & { apiKey: { userId: number } }) {
+  getWhatsAppQRCode(@Req() req: ApiKeyRequest) {
     return this.userService.getWhatsAppQRCode(req.apiKey.userId.toString());
   }
 
   @Post('session')
-  createWhatsAppSession(@Req() req: Request & { apiKey: { userId: number } }) {
-    return this.userService.createWhatsAppSession(req.apiKey.userId.toString());
+  createWhatsAppSession(@Req() req: ApiKeyRequest) {
+    return this.userService.createWhatsAppSession(
+      req.apiKey.userId.toString(),
+      req.headers['x-api-key'] as string,
+    );
   }
 
   @Get('status')
-  getStatus(@Req() req: Request & { apiKey: { userId: number } }) {
+  getStatus(@Req() req: ApiKeyRequest) {
     return this.userService.getStatus(req.apiKey.userId.toString());
   }
 }

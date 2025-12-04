@@ -1,18 +1,22 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
-import { WhatsappService } from 'src/whatsapp/whatsapp.service';
+import { WuzapiClientService } from 'src/whatsapp/wuzapi-client.service';
+import { RedisService } from 'src/redis/redis.service';
 import { EProcessor } from '../types';
 
 interface IJobData {
-  idUser: number;
-  whatsapp: string;
+  idUser: string;
+  apiKeyHash?: string;
 }
 
 
 @Processor(EProcessor.CREATE_USER)
 export class UserCreate extends WorkerHost {
-  constructor(private readonly whatsappService: WhatsappService) {
+  constructor(
+    private readonly wuzapiClient: WuzapiClientService,
+    private readonly redisService: RedisService,
+  ) {
     super();
   }
 
@@ -21,7 +25,30 @@ export class UserCreate extends WorkerHost {
   async process(job: Job<IJobData>): Promise<any> {
     this.logger.log(`Processing job: ${job.id}`, job.data);
 
-    await this.whatsappService.createSession(job.data.idUser.toString());
+    const { idUser, apiKeyHash } = job.data;
+
+    try {
+      // Get API key hash from Redis if not provided
+      let userApiKeyHash = apiKeyHash;
+      if (!userApiKeyHash) {
+        const apiKeyFromRedis = await this.redisService.get(`user:${idUser}:apikey`);
+        if (!apiKeyFromRedis) {
+          throw new Error('API key not found for user');
+        }
+        userApiKeyHash = apiKeyFromRedis;
+      }
+
+      // Create WuzAPI user if not exists
+      await this.wuzapiClient.createWuzapiUser(idUser, userApiKeyHash);
+
+      // Start WhatsApp session
+      await this.wuzapiClient.startSession(idUser, userApiKeyHash);
+
+      this.logger.log(`Session creation initiated for user ${idUser}`);
+    } catch (error) {
+      this.logger.error(`Failed to create session for ${idUser}:`, error.message);
+      throw error;
+    }
 
     return;
   }
