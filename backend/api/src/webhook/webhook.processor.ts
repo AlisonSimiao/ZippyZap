@@ -2,17 +2,12 @@ import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { Job } from 'bullmq';
-import crypto from 'crypto';
+import crypto, { createHmac } from 'crypto';
 import { format } from 'date-fns';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RedisService } from 'src/redis/redis.service';
 import { EProcessor } from '../queue-board/queue-board.module';
-
-interface IWebhookJob {
-  idUser: string;
-  type: string;
-  data: Record<string, any>;
-}
+import { IWebhookJob } from './webhook-job.types';
 
 interface IWebhookData {
   id: number;
@@ -38,7 +33,7 @@ export class WebhookProcessor extends WorkerHost {
   }
 
   async process(job: Job<IWebhookJob>): Promise<any> {
-    this.logger.log(`Processing job ${job.id} - ${job.data.idUser}`);
+    this.logger.log(`Processing job ${job.id} -`, job.data);
 
     const cacheKey = `webhook:${job.data.idUser}:${job.data.type}`;
     const cachedData = await this.redis.get(cacheKey);
@@ -50,14 +45,6 @@ export class WebhookProcessor extends WorkerHost {
         where: {
           userId: +job.data.idUser,
           isActive: true,
-          webhookEvents: {
-            some: {
-              active: true,
-              event: {
-                slug: job.data.type,
-              },
-            },
-          },
         },
         orderBy: { createdAt: 'desc' },
         include: {
@@ -72,7 +59,7 @@ export class WebhookProcessor extends WorkerHost {
           },
         },
       });
-
+      console.log({ webhook, jobData: job.data });
       if (!webhook) {
         this.logger.log(
           `No active webhook found for user ${job.data.idUser} with event ${job.data.type}`,
@@ -102,7 +89,7 @@ export class WebhookProcessor extends WorkerHost {
     } else {
       webhookData = JSON.parse(cachedData) as IWebhookData;
     }
-
+    console.log({ webhookData });
     const payload = {
       event: job.data.type,
       data: job.data.data,
@@ -126,30 +113,29 @@ export class WebhookProcessor extends WorkerHost {
       });
 
       status = response.status;
-      responseBody = JSON.stringify(response.data).substring(0, 1000); // Truncate if too long
+      responseBody = JSON.stringify(response.data ?? {}).substring(0, 1000);
 
       this.logger.log(
         `Webhook ${webhookData.id} sent successfully for event ${job.data.type}`,
       );
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
       if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as AxiosError<Record<string, unknown>>;
         if (axiosError.response) {
           status = axiosError.response.status;
-          responseBody = JSON.stringify(axiosError.response.data).substring(
-            0,
-            1000,
-          );
+          responseBody = JSON.stringify(
+            axiosError.response.data ?? {},
+          ).substring(0, 1000);
         }
       } else {
         status = 500;
-        errorMsg = (error as Error).message || '';
-        responseBody = error.message;
       }
+      errorMsg = err.message;
+      responseBody = err.message;
       this.logger.error(
-        `Failed to send webhook ${webhookData.id}: ${error.message}`,
+        `Failed to send webhook ${webhookData.id}: ${err.message}`,
       );
-      // Don't throw yet, we want to log first
     } finally {
       const duration = Date.now() - start;
 
@@ -157,40 +143,40 @@ export class WebhookProcessor extends WorkerHost {
         data: {
           webhookId: webhookData.id,
           event: job.data.type,
-          payload: payload as any,
+          payload: payload,
           status,
           response: responseBody,
           duration,
         },
       });
+    }
 
-      if (errorMsg) {
-        throw new Error(errorMsg);
-      }
+    if (errorMsg) {
+      throw new Error(errorMsg);
     }
   }
 
-  generateSignature(payload: any, secret: string) {
+  generateSignature(payload: unknown, secret: string) {
     // Se o payload já for string, usa direto, senão converte
     const dataString =
       typeof payload === 'string' ? payload : JSON.stringify(payload);
-    return crypto.createHmac('sha256', secret).update(dataString).digest('hex');
+    return createHmac('sha256', secret).update(dataString).digest('hex');
   }
 
   @OnWorkerEvent('completed')
-  onCompleted(job: Job) {
+  onCompleted(job: Job<IWebhookJob>) {
     this.logger.log(`Job completed: ${job.id} - ${job.data.idUser}`);
   }
 
   @OnWorkerEvent('failed')
-  onFailed(job: Job, err: Error) {
+  onFailed(job: Job<IWebhookJob>, err: Error) {
     this.logger.error(
       `Job failed: ${job.id} - ${job.data.idUser} - ${err.message}`,
     );
   }
 
   @OnWorkerEvent('active')
-  onActive(job: Job) {
+  onActive(job: Job<IWebhookJob>) {
     this.logger.log(`Job started: ${job.id} - ${job.data.idUser}`);
   }
 }

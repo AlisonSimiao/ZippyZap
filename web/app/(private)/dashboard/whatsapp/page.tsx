@@ -201,6 +201,7 @@ export default function WhatsAppPage() {
             toast.success('Mensagem enviada com sucesso!')
             setMessage('')
         } catch (err: any) {
+            console.error(err)
             toast.error(err.response?.data?.message || 'Erro ao enviar mensagem')
         } finally {
             setSendingMessage(false)
@@ -415,11 +416,11 @@ export default function WhatsAppPage() {
                                         value={phoneNumber}
                                         onChange={(e) => setPhoneNumber(e.target.value)}
                                         disabled={status !== 'connected'}
-                                        pattern="[1-9]{2}[0-9]{8,9}"
+                                        pattern="((55)?[1-9]{2}[0-9]{8,9})"
                                         required
                                     />
                                     <p className="text-sm text-gray-500 mt-1">
-                                        Formato: DDD + número (apenas números, sem espaços)
+                                        Formato: (55) + DDD + número (apenas números, sem espaços)
                                     </p>
                                 </div>
 

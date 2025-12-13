@@ -2,12 +2,36 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import * as fs from 'fs';
 
-interface WuzapiUser {
-  name: string;
-  token: string;
-  webhook?: string;
-  events?: string;
+enum EEvent {
+  Message = 'Message',
+  ReadReceipt = 'ReadReceipt',
+  Presence = 'Presence',
+  ChatPresence = 'ChatPresence',
+  HistorySync = 'HistorySync',
+  Receipt = 'Receipt',
+  UndecryptableMessage = 'UndecryptableMessage',
+  MediaRetry = 'MediaRetry',
+  QR = 'QR',
+  Disconnected = 'Disconnected',
+  All = 'All',
+}
+
+export interface WuzapiUser {
+  connected?: boolean,
+  events?: EEvent,
+  expiration?: number,
+  id?: string,
+  jid?: string,
+  loggedIn?: true,
+  name?: string,
+  proxy_config?: [Object],
+  proxy_url?: string,
+  qrcode?: string,
+  s3_config?: [Object],
+  token?: string,
+  webhook?: string,
 }
 
 interface WuzapiQRResponse {
@@ -58,8 +82,8 @@ export class WuzapiClientService {
       const userData: WuzapiUser = {
         name: userId,
         token: apiKeyHash,
-        webhook: process.env.WUZAPI_WEBHOOK_URL,
-        events: 'All',
+        webhook: process.env.WUZAPI_WEBHOOK_URL || '',
+        events: EEvent.All,
       };
 
       const res = await firstValueFrom(
@@ -87,6 +111,31 @@ export class WuzapiClientService {
         error?.response?.data || error?.message || error,
       );
       throw error;
+    }
+  }
+
+
+
+  /**
+   * Get all users from WuzAPI
+   */
+  async getUsers(): Promise<WuzapiUser[]> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get<{ data: WuzapiUser[] }>(`${this.baseUrl}/admin/users`, {
+          headers: {
+            Authorization: this.adminToken,
+          },
+        }),
+      );
+
+      return response.data?.data || [];
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to get users:`,
+        error?.response?.data || error?.message || error,
+      );
+      return [];
     }
   }
 
@@ -153,7 +202,7 @@ export class WuzapiClientService {
     text: string,
   ): Promise<void> {
     try {
-      await firstValueFrom(
+      const response = await firstValueFrom(
         this.httpService.post(
           `${this.baseUrl}/chat/send/text`,
           {
@@ -169,8 +218,12 @@ export class WuzapiClientService {
         ),
       );
 
-      this.logger.log(`Message sent via WuzAPI for user ${userId} to ${to}`);
+      const logMsg = `Message sent via WuzAPI for user ${userId} to ${to}. Response: ${JSON.stringify(response.data)}\n`;
+      this.logger.log(logMsg);
+      try { fs.appendFileSync('/tmp/wuzapi_debug.log', logMsg); } catch (e) { console.error(e); }
     } catch (error: any) {
+      const errorMsg = `Failed to send message for ${userId}: ${JSON.stringify(error?.response?.data || error?.message || error)}\n`;
+      try { fs.appendFileSync('/tmp/wuzapi_debug.log', errorMsg); } catch (e) { }
       this.logger.error(
         `Failed to send message for ${userId}:`,
         error?.response?.data || error?.message || error,

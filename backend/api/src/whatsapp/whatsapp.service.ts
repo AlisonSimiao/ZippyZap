@@ -9,14 +9,12 @@ export class WhatsappService {
   constructor(
     @InjectQueue('send-message') private readonly sendMessageQueue: Queue,
     private readonly redisService: RedisService,
-  ) { }
+  ) {}
 
   normalizePhone(phone: string) {
     phone = phone.replace(/\D/g, ''); // remove tudo que não é número
-    if (phone.length === 10 || phone.length === 11) {
-      return '55' + phone; // adiciona DDI Brasil
-    }
-    return phone; // se já veio com DDI
+    console.log(phone);
+    return phone;
   }
 
   async sendMessage(userId: string, phone: string, text: string) {

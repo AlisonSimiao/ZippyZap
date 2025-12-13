@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
+import * as express from 'express';
 
 class ValidationError extends HttpException {
   constructor(errors: Record<string, string[]>) {
@@ -10,6 +11,9 @@ class ValidationError extends HttpException {
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
+
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   app.useGlobalPipes(
     new ValidationPipe({
