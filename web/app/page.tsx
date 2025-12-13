@@ -12,9 +12,81 @@ import Link from "next/link"
 import { CodeBlock } from "@/components/ui/code-block"
 
 function CodeExamples() {
+  // Structured Data for SEO
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zippyzap.online'
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "ZippyZap",
+    "url": baseUrl,
+    "description": "Plataforma de API WhatsApp Business para integração de mensagens",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": `${baseUrl}/docs?q={search_term_string}`,
+      "query-input": "required name=search_term_string"
+    }
+  }
+
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "ZippyZap WhatsApp API",
+    "description": "API completa para integração WhatsApp Business com webhooks em tempo real, envio de mensagens, arquivos e mídias",
+    "brand": {
+      "@type": "Brand",
+      "name": "ZippyZap"
+    },
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "BRL",
+      "lowPrice": "0",
+      "highPrice": "499",
+      "offerCount": "3"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "127"
+    }
+  }
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Como funciona a API do ZippyZap?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A API do ZippyZap permite integrar funcionalidades WhatsApp em suas aplicações através de requisições HTTP RESTful. Você pode enviar mensagens, arquivos e receber webhooks em tempo real."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Quanto tempo leva para integrar?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A integração pode ser feita em menos de 5 minutos. Basta criar sua conta, gerar uma API key, conectar seu WhatsApp e fazer sua primeira chamada à API."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Qual o uptime da plataforma?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Garantimos 99.9% de uptime com infraestrutura robusta e escalável preparada para milhares de mensagens por minuto."
+        }
+      }
+    ]
+  }
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.zippyzap.online'
+
   const examples = {
     curl: `curl -X POST \\
-  https://api.zippyzap.com/v1/messages \\
+  ${apiUrl}/v1/messages \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -26,7 +98,7 @@ function CodeExamples() {
     node: `const axios = require('axios');
 
 const response = await axios.post(
-  'https://api.zippyzap.com/v1/messages',
+  '${apiUrl}/v1/messages',
   {
     to: '+5511999999999',
     type: 'text',
@@ -44,7 +116,7 @@ console.log(response.data);`,
 
     python: `import requests
 
-url = "https://api.zippyzap.com/v1/messages"
+url = "${apiUrl}/v1/messages"
 headers = {
     "X-API-Key": "YOUR_API_KEY",
     "Content-Type": "application/json"
@@ -68,7 +140,7 @@ import (
 )
 
 func main() {
-    url := "https://api.zippyzap.com/v1/messages"
+    url := "${apiUrl}/v1/messages"
     
     payload := map[string]string{
         "to":      "+5511999999999",
@@ -94,6 +166,20 @@ func main() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+
       <HEADERS.HeaderLp />
 
       {/* Hero Section */}

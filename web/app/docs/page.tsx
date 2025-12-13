@@ -31,9 +31,10 @@ import Link from "next/link"
 import ApiReference from "../components/ApiReference"
 
 export default function DocsPage() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.zippyzap.online'
 
     const codeExamples = {
-        sendMessage: `curl -X POST https://api.zippyzap.com/whatsapp \\
+        sendMessage: `curl -X POST ${apiUrl}/whatsapp \\\\
 -H "X-API-Key: YOUR_API_KEY" \\
 -H "Content-Type: application/json" \\
 -d '{
@@ -42,7 +43,7 @@ export default function DocsPage() {
   "message": "Olá! Sua mensagem foi enviada."
 }'`,
 
-        sendImage: `curl -X POST https://api.zippyzap.com/whatsapp \\
+        sendImage: `curl -X POST ${apiUrl}/whatsapp \\\\
   -H "X-API-Key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -92,7 +93,7 @@ app.post('/webhook', (req, res) => {
 async function sendWhatsAppMessage() {
   try {
     const response = await axios.post(
-      'https://api.zippyzap.com/whatsapp',
+      '${apiUrl}/whatsapp',
       {
         to: '11999999999',
         type: 'text',
@@ -115,7 +116,7 @@ async function sendWhatsAppMessage() {
         pythonExample: `import requests
 
 def send_whatsapp_message():
-    url = "https://api.zippyzap.com/whatsapp"
+    url = "${apiUrl}/whatsapp"
     headers = {
         "X-API-Key": "YOUR_API_KEY",
         "Content-Type": "application/json"
@@ -133,8 +134,98 @@ def send_whatsapp_message():
 send_whatsapp_message()`,
     }
 
+    // Structured Data for SEO
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zippyzap.online'
+
+    const techArticleSchema = {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Documentação ZippyZap - API WhatsApp Business",
+        "description": "Documentação completa da API WhatsApp Business do ZippyZap com exemplos de código, webhooks e guias de integração",
+        "author": {
+            "@type": "Organization",
+            "name": "ZippyZap"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "ZippyZap",
+            "logo": {
+                "@type": "ImageObject",
+                "url": `${baseUrl}/logo.png`
+            }
+        },
+        "datePublished": "2024-01-01",
+        "dateModified": new Date().toISOString().split('T')[0]
+    }
+
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": baseUrl
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Documentação",
+                "item": `${baseUrl}/docs`
+            }
+        ]
+    }
+
+    const howToSchema = {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "Como integrar a API WhatsApp do ZippyZap",
+        "description": "Guia passo a passo para integrar a API WhatsApp em sua aplicação",
+        "step": [
+            {
+                "@type": "HowToStep",
+                "position": 1,
+                "name": "Criar conta",
+                "text": "Registre-se gratuitamente e receba 1000 mensagens para testar"
+            },
+            {
+                "@type": "HowToStep",
+                "position": 2,
+                "name": "Gerar API Key",
+                "text": "Crie uma chave de API para autenticar suas requisições"
+            },
+            {
+                "@type": "HowToStep",
+                "position": 3,
+                "name": "Configurar WhatsApp",
+                "text": "Conecte sua conta WhatsApp escaneando o QR Code"
+            },
+            {
+                "@type": "HowToStep",
+                "position": 4,
+                "name": "Enviar mensagem",
+                "text": "Faça sua primeira chamada à API e envie uma mensagem"
+            }
+        ]
+    }
+
     return (
         <div className="min-h-screen bg-white">
+            {/* Structured Data */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(techArticleSchema) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
+            />
+
             <HEADERS.HeaderLp />
 
             {/* Hero Section */}

@@ -22,14 +22,27 @@ const sourceSans = Source_Sans_3({
 
 export const metadata: Metadata = {
   title: "ZippyZap - WhatsApp API Integration",
-  description: "Integre mensagens WhatsApp facilmente em suas aplicações com nossa API confiável e escalável",
-  keywords: "whatsapp api, api whatsapp, integração whatsapp, mensagens whatsapp, webhook whatsapp",
+  description: "Integre mensagens WhatsApp facilmente em suas aplicações com nossa API confiável e escalável. Envie mensagens, arquivos e mídias com webhooks em tempo real.",
+  keywords: [
+    "whatsapp api",
+    "api whatsapp",
+    "integração whatsapp",
+    "mensagens whatsapp",
+    "webhook whatsapp",
+    "whatsapp business api",
+    "api rest whatsapp",
+    "automação whatsapp",
+    "chatbot whatsapp",
+    "whatsapp brasil",
+    "enviar mensagem whatsapp api",
+    "whatsapp api oficial"
+  ].join(", "),
   authors: [{ name: "ZippyZap" }],
   creator: "ZippyZap",
   publisher: "ZippyZap",
   robots: "index, follow",
   generator: "Next.js",
-  metadataBase: new URL('https://zippy-zap.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://zippyzap.online'),
   verification: {
     google: 'OMCTgJ-OAioJ_SfRNFX7-kpzt6WnOeDXsMHp7aiCpLw',
   },
@@ -39,15 +52,25 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
-    url: 'https://zippy-zap.vercel.app',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://zippyzap.online',
     title: 'ZippyZap - WhatsApp API Integration',
     description: 'Integre mensagens WhatsApp facilmente em suas aplicações com nossa API confiável e escalável',
     siteName: 'ZippyZap',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'ZippyZap - WhatsApp API Platform',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ZippyZap - WhatsApp API Integration',
     description: 'Integre mensagens WhatsApp facilmente em suas aplicações com nossa API confiável e escalável',
+    images: ['/og-image.png'],
+    creator: '@zippyzapOfc',
   },
   icons: {
     icon: '/favicon/favicon.ico',
@@ -61,12 +84,36 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "ZippyZap",
+    "url": process.env.NEXT_PUBLIC_APP_URL || "https://zippyzap.online",
+    "logo": `${process.env.NEXT_PUBLIC_APP_URL || "https://zippyzap.online"}/logo.png`,
+    "description": "Plataforma de API WhatsApp Business para integração de mensagens em aplicações",
+    "sameAs": [
+      "https://x.com/zippyzapOfc",
+      "https://www.instagram.com/zippyzapapi/"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Customer Support",
+      "availableLanguage": ["Portuguese", "English"]
+    }
+  }
+
   return (
     <html lang="pt-BR" className={`${playfairDisplay.variable} ${sourceSans.variable} antialiased`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+      </head>
       <body className="font-sans">
         <Providers>
           <Analytics />
-            {children}
+          {children}
           <Toaster />
         </Providers>
       </body>

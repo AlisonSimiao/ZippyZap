@@ -58,7 +58,7 @@ function PaymentFailureContent() {
 
                     <div className="text-center">
                         <p className="text-sm text-[#333333]/70 mb-2">Precisa de ajuda?</p>
-                        <a href="mailto:suporte@zippyzap.com" className="text-sm text-[#0066FF] hover:underline">
+                        <a href="mailto:suporte@zippyzap.online" className="text-sm text-[#0066FF] hover:underline">
                             Entre em contato com o suporte
                         </a>
                     </div>

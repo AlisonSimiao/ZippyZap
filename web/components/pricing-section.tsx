@@ -82,7 +82,7 @@ export function PricingSection() {
   const handleSelectPlan = (planId: number, isEnterprise: boolean) => {
     if (isEnterprise) {
       // Para plano enterprise, redirecionar para contato
-      window.location.href = "mailto:vendas@zippyzap.com?subject=Interesse no Plano Enterprise"
+      window.location.href = "mailto:vendas@zippyzap.online?subject=Interesse no Plano Enterprise"
       return
     }
 
