@@ -43,15 +43,6 @@ export default function DocsPage() {
   "message": "Olá! Sua mensagem foi enviada."
 }'`,
 
-        sendImage: `curl -X POST ${apiUrl}/whatsapp \\\\
-  -H "X-API-Key: YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "to": "11999999999",
-    "type": "image",
-    "message": "https://example.com/image.jpg"
-  }'`,
-
         webhookExample: `{
   "event": "message.received",
   "timestamp": "2024-11-22T10:30:00Z",
@@ -325,7 +316,7 @@ send_whatsapp_message()`,
                             <h3 className="text-2xl font-bold text-[#333333] mt-12 mb-4">Principais Recursos</h3>
                             <div className="grid md:grid-cols-2 gap-4">
                                 {[
-                                    "Envio de mensagens de texto, imagens, documentos e mídias",
+                                    "Envio de mensagens de texto via API REST",
                                     "Webhooks em tempo real para receber mensagens e status",
                                     "Autenticação segura via API Keys",
                                     "Rate limiting inteligente por plano",

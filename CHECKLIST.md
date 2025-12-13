@@ -49,8 +49,8 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 ### **📅 sprint 4 — Envio de Mensagens + Webhooks**
 
 * [x] Rota de envio de mensagem (texto)
-* [ ] Rota para envio com mídia (se MVP incluir)
-* [ ] Testes de envio em massa (10–20 msgs)
+* [ ] Rota para envio com mídia (Adiado para v2)
+* [ ] Testes de envio em massa (Adiado para v2)
 * [x] Configuração de webhooks
 * [x] Envio de eventos básicos:
 
@@ -137,7 +137,7 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 * [ ] Melhorar mensagens de erro
 * [ ] Revisar UI do painel
 * [ ] Revisar limites e plano
-* [ ] Revisar documentação final
+* [x] Revisar documentação final
 
 ---
 
@@ -148,6 +148,7 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 * [x] Criar botão “Criar Conta”
 * [x] Criar sessão “Como funciona”
 * [x] Criar sessão “Preço único + testes grátis”
+* [x] Otimização de SEO (Metadados, JSON-LD, Sitemap)
 
 ---
 

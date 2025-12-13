@@ -32,7 +32,7 @@ function CodeExamples() {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": "ZippyZap WhatsApp API",
-    "description": "API completa para integração WhatsApp Business com webhooks em tempo real, envio de mensagens, arquivos e mídias",
+    "description": "API completa para integração WhatsApp Business com webhooks em tempo real e envio de mensagens de texto",
     "brand": {
       "@type": "Brand",
       "name": "ZippyZap"
@@ -196,7 +196,7 @@ func main() {
                 <span className="text-[#0066FF]"> Segundos</span>
               </h1>
               <p className="text-xl text-[#333333]/70 mb-8 leading-relaxed max-w-2xl lg:max-w-none">
-                Envie mensagens, arquivos e mídias para WhatsApp através de nossa API robusta. Com webhooks em tempo
+                Envie mensagens de texto para WhatsApp através de nossa API robusta. Com webhooks em tempo
                 real e documentação completa para desenvolvedores.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -287,9 +287,9 @@ func main() {
                 <div className="w-12 h-12 bg-[#25D366]/20 rounded-lg flex items-center justify-center mb-4">
                   <FileText className="w-6 h-6 text-[#25D366]" />
                 </div>
-                <CardTitle className="text-xl text-[#333333]">Envio de Arquivos</CardTitle>
+                <CardTitle className="text-xl text-[#333333]">Gestão de Sessões</CardTitle>
                 <CardDescription className="text-[#333333]/70">
-                  Suporte completo para imagens, documentos, áudios e vídeos com validação automática
+                  Conexão via QR Code instantânea com reconexão automática e persistência de sessão
                 </CardDescription>
               </CardHeader>
             </Card>
