@@ -61,10 +61,11 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 
 ### **📅 sprint 5 — Rate Limit & Limite de Sessão**
 
-* [ ] Definir limites por plano (mesmo plano = 1 sessão sempre)
-* [ ] Implementar o rate-limit por usuário
-* [ ] Middleware de controle de requisições
-* [ ] Bloqueio elegante quando exceder o limite
+* [ ] Configurar `ThrottlerModule` (Rate Limit global)
+* [ ] Implementar `PlanLimitGuard` (Limites diários/mensais)
+* [ ] Implementar verificação de sessão única (1 sessão por usuário)
+* [ ] Adicionar contadores de uso no Redis
+* [ ] Bloqueio elegante com mensagens de erro claras
 
 ---
 
