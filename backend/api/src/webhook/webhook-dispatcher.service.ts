@@ -7,27 +7,31 @@ import { EProcessor } from '../queue-board/queue-board.module';
 export class WebhookDispatcherService {
   private readonly logger = new Logger(WebhookDispatcherService.name);
 
-  constructor(
-    @InjectQueue(EProcessor.WEBHOOK) private webhookQueue: Queue,
-  ) {}
+  constructor(@InjectQueue(EProcessor.WEBHOOK) private webhookQueue: Queue) {}
 
   async dispatch(userId: number, eventType: string, data: any) {
     try {
-      await this.webhookQueue.add('webhook-event', {
-        idUser: userId.toString(),
-        type: eventType,
-        data,
-      }, {
-        removeOnComplete: 10,
-        removeOnFail: 5,
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 2000,
+      await this.webhookQueue.add(
+        'webhook-event',
+        {
+          idUser: userId.toString(),
+          type: eventType,
+          data,
         },
-      });
+        {
+          removeOnComplete: 10,
+          removeOnFail: 5,
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 2000,
+          },
+        },
+      );
 
-      this.logger.log(`Webhook dispatched for user ${userId}, event: ${eventType}`);
+      this.logger.log(
+        `Webhook dispatched for user ${userId}, event: ${eventType}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to dispatch webhook: ${error.message}`);
     }

@@ -8,9 +8,10 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 
 ---
 
+
 ### 📊 **Progresso Atual**
-![Progress](https://progress-bar.dev/51)
-**51% Concluído** (37 de 72 tarefas)
+![Progress](https://progress-bar.dev/66)
+**66% Concluído** (47 de 71 tarefas)
 
 ---
 
@@ -61,11 +62,11 @@ Claro! Aqui está um **Markdown limpo, organizado e pronto para edição**, perf
 
 ### **📅 sprint 5 — Rate Limit & Limite de Sessão**
 
-* [ ] Configurar `ThrottlerModule` (Rate Limit global)
-* [ ] Implementar `PlanLimitGuard` (Limites diários/mensais)
-* [ ] Implementar verificação de sessão única (1 sessão por usuário)
-* [ ] Adicionar contadores de uso no Redis
-* [ ] Bloqueio elegante com mensagens de erro claras
+* [x] Configurar `ThrottlerModule` (Rate Limit global)
+* [x] Implementar `PlanLimitGuard` (Limites diários/mensais)
+* [x] Implementar verificação de sessão única (1 sessão por usuário)
+* [x] Adicionar contadores de uso no Redis
+* [x] Bloqueio elegante com mensagens de erro claras
 
 ---
 

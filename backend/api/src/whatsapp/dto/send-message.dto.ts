@@ -11,7 +11,9 @@ enum EType {
 export class SendMessageDto {
   @IsNotEmpty()
   @IsString()
-  @Matches(/^((55)?[1-9]{2}[0-9]{8,9})$/, { message: 'Invalid phone number format. Must be (55) + DDD + Number' })
+  @Matches(/^((55)?[1-9]{2}[0-9]{8,9})$/, {
+    message: 'Invalid phone number format. Must be (55) + DDD + Number',
+  })
   to: string;
 
   @IsNotEmpty()

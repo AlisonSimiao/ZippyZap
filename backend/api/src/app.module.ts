@@ -20,10 +20,16 @@ import { ApiKeyModule } from './api-key/api-key.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { QueueBoardModule } from './queue-board/queue-board.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { CustomThrottlerGuard } from './auth/guards/throttle.guard';
+import { getThrottleConfig } from './config/throttle.config';
+import { ApiKeyMiddleware } from './api-key/api-key.middleware';
 
 @Module({
   imports: [
     PrismaModule,
+    ThrottlerModule.forRoot(getThrottleConfig()),
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST,
@@ -48,7 +54,13 @@ import { DashboardModule } from './dashboard/dashboard.module';
     DashboardModule,
   ],
   controllers: [AppController, WebhookController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: CustomThrottlerGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
@@ -64,6 +76,10 @@ export class AppModule implements NestModule {
         { path: '/whatsapp/*path', method: RequestMethod.ALL },
         { path: '/payments/webhook', method: RequestMethod.POST },
       )
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+
+    consumer
+      .apply(ApiKeyMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

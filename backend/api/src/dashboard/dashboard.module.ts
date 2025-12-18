@@ -7,8 +7,8 @@ import { WhatsappModule } from 'src/whatsapp/whatsapp.module';
 import { WebhookModule } from 'src/webhook/webhook.module';
 
 @Module({
-    imports: [UserModule, WhatsappModule, WebhookModule],
-    controllers: [DashboardController],
-    providers: [DashboardService, PrismaService],
+  imports: [UserModule, WhatsappModule, WebhookModule],
+  controllers: [DashboardController],
+  providers: [DashboardService, PrismaService],
 })
-export class DashboardModule { }
+export class DashboardModule {}

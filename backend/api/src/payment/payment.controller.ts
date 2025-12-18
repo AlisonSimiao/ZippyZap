@@ -6,7 +6,10 @@ export class PaymentController {
   constructor(private paymentService: PaymentService) {}
 
   @Post('create')
-  async createPayment(@Request() req, @Body() body: { planId: number }) {
+  async createPayment(
+    @Request() req: { user: { id: number } },
+    @Body() body: { planId: number },
+  ) {
     const userId = req.user.id;
     return this.paymentService.createPaymentPreference(userId, body.planId);
   }
@@ -18,7 +21,7 @@ export class PaymentController {
 
   @Get('status/:paymentId')
   async getPaymentStatus(
-    @Request() req,
+    @Request() req: { user: { id: number } },
     @Param('paymentId') paymentId: string,
   ) {
     const userId = req.user.id;

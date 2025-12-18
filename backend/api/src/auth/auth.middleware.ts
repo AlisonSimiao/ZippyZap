@@ -1,13 +1,13 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NestMiddleware,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
@@ -37,6 +37,7 @@ export class AuthMiddleware implements NestMiddleware {
         },
         select: {
           id: true,
+          Plan: true,
         },
       });
 
@@ -46,7 +47,8 @@ export class AuthMiddleware implements NestMiddleware {
 
       next();
     } catch (err) {
-      this.logger.error(err.message);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      this.logger.error(message);
       throw new UnauthorizedException();
     }
   }
