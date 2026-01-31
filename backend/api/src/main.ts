@@ -10,6 +10,23 @@ class ValidationError extends HttpException {
 }
 
 async function bootstrap(): Promise<void> {
+  // Validar variáveis de ambiente críticas
+  const requiredEnvVars = [
+    'DATABASE_URL',
+    'JWT_SECRET',
+    'MP_WEBHOOK_SECRET',
+    'MP_ACCESS_TOKEN',
+  ];
+
+  const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+  
+  if (missingEnvVars.length > 0) {
+    console.error(
+      `❌ Variáveis de ambiente faltando: ${missingEnvVars.join(', ')}`,
+    );
+    process.exit(1);
+  }
+
   const app = await NestFactory.create(AppModule);
 
   app.use(express.json({ limit: '50mb' }));
@@ -35,9 +52,15 @@ async function bootstrap(): Promise<void> {
     optionsSuccessStatus: 204,
   });
 
-  await app.listen(process.env.PORT ?? 3000, '0.0.0.0', () => {
-    console.log(`Server is running on port ${process.env.PORT ?? 3000}`);
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port, '0.0.0.0', () => {
+    console.log(`✅ Server is running on port ${port}`);
+    console.log(`✅ Webhook validation enabled`);
+    console.log(`✅ Environment variables validated`);
   });
 }
 
-void bootstrap().catch();
+void bootstrap().catch((error) => {
+  console.error('❌ Failed to bootstrap application:', error);
+  process.exit(1);
+});

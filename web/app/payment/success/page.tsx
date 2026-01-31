@@ -20,6 +20,8 @@ function PaymentSuccessContent() {
 
     useEffect(() => {
         let interval: NodeJS.Timeout
+        let retryCount = 0
+        const maxRetries = 10
 
         async function checkPaymentStatus() {
             try {
@@ -30,30 +32,45 @@ function PaymentSuccessContent() {
                     return
                 }
 
-                if (!paymentId && !externalReference) {
+                if (!paymentId) {
                     setError("ID de pagamento não encontrado")
                     setLoading(false)
                     return
                 }
 
-                // Fazer polling do status do pagamento
-                interval = setInterval(async () => {
+                // Fazer polling do status do pagamento com retry logic
+                const checkStatus = async () => {
                     try {
-                        // Aqui você pode buscar pelo paymentId se tiver
-                        // Por enquanto vamos apenas marcar como aprovado após alguns segundos
-                        setStatus("approved")
-                        setLoading(false)
-                        clearInterval(interval)
+                        const data = await api.getPaymentStatus(accessToken, paymentId)
+                        
+                        if (data?.status) {
+                            setStatus(data.status)
+                            setLoading(false)
+                            clearInterval(interval)
+                        } else if (retryCount < maxRetries) {
+                            retryCount++
+                        } else {
+                            // Após 50 segundos sem resposta, mostrar erro
+                            setError("Não foi possível confirmar o status do pagamento. Por favor, verifique seu email.")
+                            setLoading(false)
+                            clearInterval(interval)
+                        }
                     } catch (err) {
                         console.error("Erro ao verificar status:", err)
+                        if (retryCount >= maxRetries) {
+                            setError("Erro ao verificar status do pagamento")
+                            setLoading(false)
+                            clearInterval(interval)
+                        }
+                        retryCount++
                     }
-                }, 3000)
+                }
 
-                // Primeira verificação imediata
-                setTimeout(() => {
-                    setStatus("approved")
-                    setLoading(false)
-                }, 2000)
+                // Primeira verificação após 2 segundos
+                setTimeout(checkStatus, 2000)
+
+                // Polling a cada 5 segundos
+                interval = setInterval(checkStatus, 5000)
 
             } catch (err) {
                 setError("Erro ao verificar pagamento")
@@ -66,7 +83,7 @@ function PaymentSuccessContent() {
         return () => {
             if (interval) clearInterval(interval)
         }
-    }, [paymentId, externalReference, router])
+    }, [paymentId, router])
 
     if (loading) {
         return (

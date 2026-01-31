@@ -18,12 +18,15 @@ import {
 } from "./styles"
 import toast from "react-hot-toast"
 import { AxiosError } from "axios"
-import { useActionState, useState } from "react"
+import { useActionState, useState, useEffect } from "react"
 import {  MessageSquareWarningIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function RegisterPage() {
   const [state, action, isPending] = useActionState(registerAction, { errors: {} })
   const [formData, setFormData] = useState({ name: '', email: '', whatsapp: '', password: '' })
+  const [isRedirecting, setIsRedirecting] = useState(false)
+  const router = useRouter()
   
   async function registerAction(prevState: any, formData: FormData) {
     try {
@@ -34,11 +37,22 @@ export default function RegisterPage() {
       
       setFormData({ name, email, whatsapp, password })
 
-      await api.signup({email, whatsapp, password, name})
+      const response = await api.signup({email, whatsapp, password, name})
 
-      toast.success("Conta criada com sucesso!", {
+      // Salvar token JWT para auto-login
+      if (response.data?.token) {
+        localStorage.setItem("accessToken", response.data.token)
+      }
+
+      toast.success("Conta criada com sucesso! Redirecionando...", {
         position: "top-right"
       })
+      
+      // Aguardar um pouco antes de redirecionar
+      setIsRedirecting(true)
+      setTimeout(() => {
+        router.push("/dashboard")
+      }, 1500)
       
       return { errors: {} }
     } catch (error) {
@@ -74,6 +88,15 @@ export default function RegisterPage() {
       return { errors: {} }
     }
   }
+
+  // Desabilitar navegação para trás enquanto redirecionando
+  useEffect(() => {
+    if (isRedirecting) {
+      const preventBack = () => window.history.forward()
+      window.addEventListener('popstate', preventBack)
+      return () => window.removeEventListener('popstate', preventBack)
+    }
+  }, [isRedirecting])
 
   return (
     <Container>
@@ -133,8 +156,8 @@ export default function RegisterPage() {
               />
               <ErrorField>{state.errors.password}</ErrorField>
             </Field>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Criando..." : "Criar Conta"}
+            <Button type="submit" disabled={isPending || isRedirecting}>
+              {isPending ? "Criando..." : isRedirecting ? "Redirecionando..." : "Criar Conta"}
             </Button>
           </Form>
           

@@ -1,4 +1,13 @@
-import { Body, Controller, Post, Get, Param, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  Param,
+  Request,
+  Headers,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PaymentService } from './payment.service';
 
 @Controller('payments')
@@ -15,7 +24,24 @@ export class PaymentController {
   }
 
   @Post('webhook')
-  async webhook(@Body() data: any) {
+  async webhook(@Body() data: any, @Headers() headers: Record<string, string>) {
+    const signature = headers['x-signature'];
+    const requestId = headers['x-request-id'];
+
+    if (!signature || !requestId) {
+      throw new UnauthorizedException('Assinatura inválida');
+    }
+
+    const isValid = this.paymentService.validateWebhookSignature(
+      data,
+      signature,
+      requestId,
+    );
+
+    if (!isValid) {
+      throw new UnauthorizedException('Assinatura inválida');
+    }
+
     return this.paymentService.handleWebhook(data);
   }
 

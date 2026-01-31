@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcrypt';
@@ -32,7 +33,7 @@ export class UserService {
       throw new ForbiddenException('Invalid credentials');
     }
 
-    const newUser = { ...user, password: undefined };
+    const { password, ...newUser } = user;
 
     return {
       token: this.jwtService.sign({ id: user.id }),
@@ -69,7 +70,7 @@ export class UserService {
       throw new ConflictException(`Usuario com ${prop} '${value}' já existe`);
     }
 
-    await this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         name: createUserDto.name,
         email: createUserDto.email,
@@ -83,9 +84,22 @@ export class UserService {
       },
       select: {
         id: true,
+        email: true,
+        name: true,
         whatsapp: true,
       },
     });
+
+    // Retornar token JWT para auto-login após signup
+    return {
+      token: this.jwtService.sign({ id: user.id }),
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        whatsapp: user.whatsapp,
+      },
+    };
   }
 
   async getWhatsAppQRCode(
@@ -99,13 +113,11 @@ export class UserService {
       );
     }
 
-    // Parse the JSON string to extract the base64 QR code
     let qrBase64: string;
     try {
       const parsed = JSON.parse(qrData);
       qrBase64 = parsed.qr;
     } catch (error) {
-      // If it's not JSON, assume it's already the base64 string (backward compatibility)
       qrBase64 = qrData;
     }
 
@@ -118,9 +130,13 @@ export class UserService {
   }
 
   async createWhatsAppSession(idUser: string, apiKeyHash?: string) {
-    // Buscar o usuário e seu plano para verificar o limite de sessões
+    const userId = parseInt(idUser, 10);
+    if (isNaN(userId) || userId <= 0) {
+      throw new BadRequestException('ID de usuário inválido');
+    }
+
     const user = await this.prisma.user.findUnique({
-      where: { id: parseInt(idUser) },
+      where: { id: userId },
       include: {
         Plan: {
           select: {
@@ -135,11 +151,9 @@ export class UserService {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    // Verificar se já existe uma sessão ativa
     const currentStatus = await this.redisService.get(`user:${idUser}:status`);
 
     if (currentStatus && currentStatus !== 'disconnected') {
-      // Se o limite de sessões é 1 e já existe uma sessão ativa
       if (user.Plan.sessionLimit === 1) {
         throw new ConflictException(
           `Limite de sessões atingido. Seu plano "${user.Plan.name}" permite apenas ${user.Plan.sessionLimit} sessão ativa. Status atual: ${currentStatus}`,
@@ -147,7 +161,6 @@ export class UserService {
       }
     }
 
-    // Store API key hash in Redis if provided
     if (apiKeyHash) {
       await this.redisService.set(`user:${idUser}:apikey`, apiKeyHash);
     }
@@ -183,21 +196,51 @@ export class UserService {
   }
 
   async testWebhookUrl(webhookUrl: string) {
-    const res = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        type: 'TESTE',
-        payload: {
-          message: 'teste',
-        },
-      }),
-    });
+    // Validar formato de URL
+    let url: URL;
+    try {
+      url = new URL(webhookUrl);
+    } catch {
+      throw new BadRequestException('URL inválida');
+    }
 
-    if (!res.ok || res.status !== 200)
-      throw new ForbiddenException('Webhook URL não tem uma resposta valida');
+    // Bloquear protocolos perigosos
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      throw new BadRequestException('Apenas HTTP/HTTPS permitidos');
+    }
+
+    // Bloquear IPs privados
+    const hostname = url.hostname;
+    const privateIpRegex = /^(127\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|localhost|0\.0\.0\.0)/;
+    if (privateIpRegex.test(hostname)) {
+      throw new BadRequestException('URLs internas não permitidas');
+    }
+
+    // Adicionar timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    try {
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'TESTE',
+          payload: {
+            message: 'teste',
+          },
+        }),
+        signal: controller.signal,
+      });
+
+      if (!res.ok || res.status !== 200) {
+        throw new ForbiddenException('Webhook URL não respondeu corretamente');
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   async getStatus(idUser: string): Promise<{ status: string }> {
@@ -207,14 +250,11 @@ export class UserService {
   }
 
   async logout(idUser: string) {
-    // Check if session exists
     const status = await this.redisService.get(`user:${idUser}:status`);
     if (!status && !(await this.redisService.get(`user:${idUser}:qrcode`))) {
-      // If no status and no QR code, consider already disconnected
       return { success: true, message: 'Already disconnected' };
     }
 
-    // Clear session data from Redis
     await this.redisService.delete(`user:${idUser}:status`);
     await this.redisService.delete(`user:${idUser}:qrcode`);
     await this.redisService.delete(`user:${idUser}:apikey`);
