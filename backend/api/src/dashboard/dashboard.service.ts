@@ -1,14 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { WhatsappService } from 'src/whatsapp/whatsapp.service';
+import { RedisService } from 'src/redis/redis.service';
+import { format } from 'date-fns';
 
 @Injectable()
 export class DashboardService {
+  private readonly logger = new Logger(DashboardService.name);
+
   constructor(
     private prisma: PrismaService,
     private userService: UserService,
     private whatsappService: WhatsappService,
+    private redis: RedisService,
   ) {}
 
   async sendMessage(userId: number, to: string, message: string) {
@@ -113,10 +118,128 @@ export class DashboardService {
       recentActivity: logs,
       metrics: {
         sent: messagesSent,
-        received: 0, // Placeholder until we confirm how received messages are stored
+        received: 0,
         webhooks: webhookLogs.length,
         errors: webhookLogs.filter((l) => l.status >= 400).length,
       },
+    };
+  }
+
+  /**
+   * Admin: Reset usage counters for a user
+   * Deletes all Redis keys for daily/monthly usage
+   */
+  async adminResetUsage(userId: number, adminId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Deletar todas as chaves de uso (diário e mensal)
+    const deletedDaily = await this.redis.deletePattern(
+      `usage:daily:${userId}:*`,
+    );
+    const deletedMonthly = await this.redis.deletePattern(
+      `usage:monthly:${userId}:*`,
+    );
+
+    this.logger.warn(
+      `Admin usage reset: user=${userId}, admin=${adminId}, deleted_daily=${deletedDaily}, deleted_monthly=${deletedMonthly}`,
+    );
+
+    return {
+      success: true,
+      userId,
+      deletedDailyKeys: deletedDaily,
+      deletedMonthlyKeys: deletedMonthly,
+      message: `Usage counters reset for user ${user.email}`,
+    };
+  }
+
+  /**
+   * Admin: Get detailed usage for a user on a specific date
+   */
+  async adminGetUsageDetail(userId: number, date?: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { Plan: true },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const targetDate = date ? new Date(date) : new Date();
+    const dateKey = format(targetDate, 'yyyy-MM-dd');
+    const monthKey = format(targetDate, 'yyyy-MM');
+
+    const dailyUsage = await this.redis.get(`usage:daily:${userId}:${dateKey}`);
+    const monthlyUsage = await this.redis.get(
+      `usage:monthly:${userId}:${monthKey}`,
+    );
+
+    const dailyCount = dailyUsage ? parseInt(dailyUsage, 10) : 0;
+    const monthlyCount = monthlyUsage ? parseInt(monthlyUsage, 10) : 0;
+
+    return {
+      userId,
+      user: {
+        email: user.email,
+        name: user.name,
+        planName: user.Plan.name,
+      },
+      date: dateKey,
+      month: monthKey,
+      usage: {
+        daily: {
+          current: dailyCount,
+          limit: user.Plan.dailyLimit,
+          percentage: (dailyCount / (user.Plan.dailyLimit || 1)) * 100,
+        },
+        monthly: {
+          current: monthlyCount,
+          limit: user.Plan.monthlyLimit,
+          percentage: (monthlyCount / (user.Plan.monthlyLimit || 1)) * 100,
+        },
+      },
+    };
+  }
+
+  /**
+   * Admin: Manually set usage limit for a user (for emergencies)
+   */
+  async adminSetUsageLimit(
+    userId: number,
+    dateKey: string,
+    newLimit: number,
+    adminId: number,
+  ) {
+    if (newLimit < 0) {
+      throw new Error('Limit cannot be negative');
+    }
+
+    const key = `usage:daily:${userId}:${dateKey}`;
+
+    if (newLimit === 0) {
+      await this.redis.delete(key);
+    } else {
+      const ttl = await this.redis.expire(key, 86400 * 2);
+      await this.redis.set(key, newLimit.toString());
+    }
+
+    this.logger.warn(
+      `Admin set usage limit: user=${userId}, date=${dateKey}, newLimit=${newLimit}, admin=${adminId}`,
+    );
+
+    return {
+      success: true,
+      userId,
+      dateKey,
+      newLimit,
+      message: `Usage limit set to ${newLimit} for ${dateKey}`,
     };
   }
 }

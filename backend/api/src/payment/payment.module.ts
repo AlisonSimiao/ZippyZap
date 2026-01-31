@@ -4,9 +4,10 @@ import { SubscriptionController } from './subscription.controller';
 import { PaymentService } from './payment.service';
 import MercadoPagoConfig from 'mercadopago';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, RedisModule],
   controllers: [PaymentController, SubscriptionController],
   providers: [
     PaymentService,

@@ -25,10 +25,12 @@ import { APP_GUARD } from '@nestjs/core';
 import { CustomThrottlerGuard } from './auth/guards/throttle.guard';
 import { getThrottleConfig } from './config/throttle.config';
 import { ApiKeyMiddleware } from './api-key/api-key.middleware';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
     PrismaModule,
+    RedisModule,
     ThrottlerModule.forRoot(getThrottleConfig()),
     BullModule.forRoot({
       connection: {

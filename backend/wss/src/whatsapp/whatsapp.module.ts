@@ -8,4 +8,4 @@ import { WuzapiClientService } from './wuzapi-client.service';
   controllers: [],
   exports: [WuzapiClientService],
 })
-export class WhatsappModule { }
+export class WhatsappModule {}

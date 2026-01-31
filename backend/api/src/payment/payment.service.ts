@@ -10,6 +10,7 @@ import MercadoPagoConfig, {
   Payment as MPPayment,
 } from 'mercadopago';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { RedisService } from 'src/redis/redis.service';
 import { PaymentStatus } from '@prisma/client';
 import * as crypto from 'crypto';
 
@@ -20,6 +21,7 @@ export class PaymentService {
   constructor(
     @Inject('MercadoPago') private readonly mp: MercadoPagoConfig,
     private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
   ) {}
 
   async createPaymentPreference(userId: number, planId: number) {
@@ -268,53 +270,79 @@ export class PaymentService {
     planId: number,
     paymentId: number,
   ) {
-    return await this.prisma.$transaction(async (tx) => {
-      const existingSubscription = await tx.subscription.findFirst({
-        where: { userId, status: 'ACTIVE' },
-      });
+    return await this.prisma
+      .$transaction(async (tx) => {
+        const existingSubscription = await tx.subscription.findFirst({
+          where: { userId, status: 'ACTIVE' },
+        });
 
-      let startDate = new Date();
-      let endDate = new Date();
+        let startDate = new Date();
+        let endDate = new Date();
 
-      if (existingSubscription) {
-        const now = new Date();
-        const existingEndDate = new Date(existingSubscription.endDate);
+        if (existingSubscription) {
+          const now = new Date();
+          const existingEndDate = new Date(existingSubscription.endDate);
 
-        if (existingEndDate > now) {
-          startDate = existingEndDate;
-          endDate = new Date(existingEndDate);
-          endDate.setDate(endDate.getDate() + 30);
+          if (existingEndDate > now) {
+            startDate = existingEndDate;
+            endDate = new Date(existingEndDate);
+            endDate.setDate(endDate.getDate() + 30);
+          } else {
+            endDate.setDate(endDate.getDate() + 30);
+          }
+
+          await tx.subscription.update({
+            where: { id: existingSubscription.id },
+            data: { status: 'CANCELLED' },
+          });
         } else {
           endDate.setDate(endDate.getDate() + 30);
         }
 
-        await tx.subscription.update({
-          where: { id: existingSubscription.id },
-          data: { status: 'CANCELLED' },
+        const subscription = await tx.subscription.create({
+          data: {
+            userId,
+            planId,
+            paymentId,
+            startDate,
+            endDate,
+            status: 'ACTIVE',
+          },
         });
-      } else {
-        endDate.setDate(endDate.getDate() + 30);
-      }
 
-      const subscription = await tx.subscription.create({
-        data: {
-          userId,
-          planId,
-          paymentId,
-          startDate,
-          endDate,
-          status: 'ACTIVE',
-        },
+        await tx.user.update({
+          where: { id: userId },
+          data: { planId },
+        });
+
+        this.logger.debug(`Subscription activated for user ${userId}`);
+        return subscription;
+      })
+      .then(async (subscription) => {
+        // ✅ Invalidar cache de API Key após ativar subscription
+        // Isso garante que PlanLimitGuard busque o plano novo na próxima requisição
+        try {
+          const apiKeys = await this.prisma.apiKey.findMany({
+            where: { userId },
+            select: { hash: true },
+          });
+
+          // Deletar cache para todas as API keys do usuário
+          for (const apiKey of apiKeys) {
+            await this.redis.delete(`apiKey:${apiKey.hash}`);
+            this.logger.debug(
+              `Cache invalidated for API key of user ${userId}`,
+            );
+          }
+        } catch (error) {
+          this.logger.error(`Failed to invalidate API key cache: ${error}`, {
+            userId,
+          });
+          // Não rejeita se falhar o cache (não-critical)
+        }
+
+        return subscription;
       });
-
-      await tx.user.update({
-        where: { id: userId },
-        data: { planId },
-      });
-
-      this.logger.debug(`Subscription activated for user ${userId}`);
-      return subscription;
-    });
   }
 
   async getPaymentStatus(paymentId: number, userId: number) {

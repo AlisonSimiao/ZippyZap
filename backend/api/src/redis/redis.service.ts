@@ -71,4 +71,40 @@ export class RedisService implements OnModuleInit {
   async expire(key: string, seconds: number): Promise<number> {
     return RedisService.redisClient.expire(key, seconds);
   }
+
+  /**
+   * Increment a counter and set expiration atomically
+   * @param key Key to increment
+   * @param ttl TTL in seconds
+   * @returns The new count after increment
+   */
+  async incrWithExpiry(key: string, ttl: number): Promise<number> {
+    const pipeline = RedisService.redisClient.pipeline();
+    pipeline.incr(key);
+    pipeline.expire(key, ttl);
+    const results = await pipeline.exec();
+
+    if (!results || results.length === 0) {
+      throw new Error(`Failed to increment key: ${key}`);
+    }
+
+    // results[0] is [error, value] from INCR
+    const incrResult = results[0];
+    if (incrResult[0] !== null) {
+      throw incrResult[0];
+    }
+
+    return incrResult[1] as number;
+  }
+
+  /**
+   * Delete keys matching a pattern (use with caution)
+   * @param pattern Redis key pattern (e.g., "apiKey:*")
+   * @returns Number of keys deleted
+   */
+  async deletePattern(pattern: string): Promise<number> {
+    const keys = await this.keys(pattern);
+    if (keys.length === 0) return 0;
+    return RedisService.redisClient.del(...keys);
+  }
 }

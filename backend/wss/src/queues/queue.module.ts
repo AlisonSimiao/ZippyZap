@@ -38,7 +38,7 @@ import { ConfigService } from '@nestjs/config';
     SendMessage,
     SessionLogout,
     StatusCheckProcessor,
-    StatusCheckService
+    StatusCheckService,
   ],
 })
-export class QueueModule { }
+export class QueueModule {}

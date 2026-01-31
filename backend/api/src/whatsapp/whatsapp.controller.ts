@@ -13,6 +13,7 @@ import { Request } from 'express';
 import { UserService } from 'src/user/user.service';
 import { PlanLimitGuard } from 'src/auth/guards/plan-limit.guard';
 import { RedisService } from 'src/redis/redis.service';
+import { Throttle } from 'src/auth/decorators/throttle.decorator';
 import { format } from 'date-fns';
 
 interface ApiKeyRequest extends Request {
@@ -32,34 +33,43 @@ export class WhatsappController {
 
   @Post()
   @UseGuards(PlanLimitGuard)
+  @Throttle(100, 60) // ✨ 100 req/min (operação cara)
   async sendMessage(@Body() body: SendMessageDto, @Req() req: ApiKeyRequest) {
     const { to: phone, message: text } = body;
-
     const userId = req.apiKey.userId.toString();
 
-    await this.whatsappService.sendMessage(userId, phone, text);
+    try {
+      // Enviar mensagem para fila
+      await this.whatsappService.sendMessage(userId, phone, text);
 
-    // Increment Usage Counters
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const month = format(new Date(), 'yyyy-MM');
-    const dailyKey = `usage:daily:${userId}:${today}`;
-    const monthlyKey = `usage:monthly:${userId}:${month}`;
+      // ✅ Só incrementa contadores se sucesso
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const month = format(new Date(), 'yyyy-MM');
+      const dailyKey = `usage:daily:${userId}:${today}`;
+      const monthlyKey = `usage:monthly:${userId}:${month}`;
 
-    const dailyCount = await this.redis.incr(dailyKey);
-    if (dailyCount === 1) await this.redis.expire(dailyKey, 86400 * 2); // 2 days TTL
+      // Usar incrWithExpiry para garantir TTL em uma operação atômica
+      await this.redis.incrWithExpiry(dailyKey, 86400 * 2); // 2 dias
+      await this.redis.incrWithExpiry(monthlyKey, 86400 * 35); // 35 dias
 
-    const monthlyCount = await this.redis.incr(monthlyKey);
-    if (monthlyCount === 1) await this.redis.expire(monthlyKey, 86400 * 35); // 35 days TTL
-
-    return { message: 'Mensagem enviada para a fila' };
+      return { message: 'Mensagem enviada para a fila' };
+    } catch (error) {
+      // ❌ Se falhar em qualquer ponto, não incrementa
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Erro ao enviar mensagem');
+    }
   }
 
   @Get('qrcode')
+  @Throttle(500, 60) // ✨ 500 req/min (leitura rápida)
   getWhatsAppQRCode(@Req() req: ApiKeyRequest) {
     return this.userService.getWhatsAppQRCode(req.apiKey.userId.toString());
   }
 
   @Post('session')
+  @Throttle(50, 60) // ✨ 50 req/min (criação de sessão)
   createWhatsAppSession(@Req() req: ApiKeyRequest) {
     return this.userService.createWhatsAppSession(
       req.apiKey.userId.toString(),
@@ -68,11 +78,13 @@ export class WhatsappController {
   }
 
   @Delete('session')
+  @Throttle(50, 60) // ✨ 50 req/min (deletar sessão)
   logoutWhatsAppSession(@Req() req: ApiKeyRequest) {
     return this.userService.logout(req.apiKey.userId.toString());
   }
 
   @Get('status')
+  @Throttle(1000, 60) // ✨ 1000 req/min (status check é rápido)
   getStatus(@Req() req: ApiKeyRequest) {
     return this.userService.getStatus(req.apiKey.userId.toString());
   }
