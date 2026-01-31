@@ -211,7 +211,8 @@ export class UserService {
 
     // Bloquear IPs privados
     const hostname = url.hostname;
-    const privateIpRegex = /^(127\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|localhost|0\.0\.0\.0)/;
+    const privateIpRegex =
+      /^(127\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.|localhost|0\.0\.0\.0)/;
     if (privateIpRegex.test(hostname)) {
       throw new BadRequestException('URLs internas não permitidas');
     }

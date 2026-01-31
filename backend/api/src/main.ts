@@ -18,8 +18,10 @@ async function bootstrap(): Promise<void> {
     'MP_ACCESS_TOKEN',
   ];
 
-  const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
-  
+  const missingEnvVars = requiredEnvVars.filter(
+    (envVar) => !process.env[envVar],
+  );
+
   if (missingEnvVars.length > 0) {
     console.error(
       `❌ Variáveis de ambiente faltando: ${missingEnvVars.join(', ')}`,

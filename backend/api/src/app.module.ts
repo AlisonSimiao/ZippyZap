@@ -43,7 +43,11 @@ import { ApiKeyMiddleware } from './api-key/api-key.middleware';
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.JWT_EXPIRE },
+      signOptions: {
+        expiresIn: process.env.JWT_EXPIRE
+          ? Number(process.env.JWT_EXPIRE)
+          : undefined,
+      },
     }),
     PlanModule,
     PaymentModule,
