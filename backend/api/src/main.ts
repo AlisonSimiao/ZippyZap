@@ -29,6 +29,13 @@ async function bootstrap(): Promise<void> {
     process.exit(1);
   }
 
+  // Otimizar garbage collection em produção
+  if (process.env.NODE_ENV === 'production') {
+    if (global.gc) {
+      global.gc();
+    }
+  }
+
   const app = await NestFactory.create(AppModule);
 
   app.use(express.json({ limit: '50mb' }));

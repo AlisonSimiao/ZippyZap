@@ -11,11 +11,15 @@ COPY . .
 ENV DATABASE_URL="postgresql://postgres.tgyyvbbejknsvholpinc:NLpZMVjlLohD2RWG@aws-1-sa-east-1.pooler.supabase.com/postgres?pgbouncer=true"
 RUN npx prisma generate
 RUN npm run build
+RUN npm prune --production
 
 FROM node:20-alpine
 WORKDIR /app
+ENV NODE_ENV=production
+ENV NODE_OPTIONS=--max-old-space-size=512
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 
+EXPOSE 8080
 CMD ["node", "dist/src/main"]
