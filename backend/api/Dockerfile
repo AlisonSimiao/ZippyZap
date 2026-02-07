@@ -33,10 +33,10 @@ ENV NODE_ENV=production \
 	THROTTLE_PUBLIC_LIMIT=20 \
 	THROTTLE_TTL=60000 \
 	THROTTLE_LIMIT=60
-ENV NODE_OPTIONS=--max-old-space-size=512
+
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 
 EXPOSE 8080
-CMD ["node", "dist/src/main"]
+CMD ["node", "dist/main"]
