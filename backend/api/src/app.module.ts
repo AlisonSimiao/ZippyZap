@@ -26,7 +26,7 @@ import { CustomThrottlerGuard } from './auth/guards/throttle.guard';
 import { getThrottleConfig } from './config/throttle.config';
 import { ApiKeyMiddleware } from './api-key/api-key.middleware';
 import { RedisModule } from './redis/redis.module';
-
+console.log('JWT_EXPIRE:', +(process.env.JWT_EXPIRE ?? 8) * 60 * 60);
 @Module({
   imports: [
     PrismaModule,
@@ -46,7 +46,7 @@ import { RedisModule } from './redis/redis.module';
       global: true,
       secret: process.env.JWT_SECRET,
       signOptions: {
-        expiresIn: +(process.env.JWT_EXPIRE ?? 8) * 60 * 60,
+        expiresIn: 8 * 60 * 60,
       },
     }),
     PlanModule,
