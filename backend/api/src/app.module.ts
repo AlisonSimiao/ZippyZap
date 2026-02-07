@@ -46,9 +46,7 @@ import { RedisModule } from './redis/redis.module';
       global: true,
       secret: process.env.JWT_SECRET,
       signOptions: {
-        expiresIn: process.env.JWT_EXPIRE
-          ? Number(process.env.JWT_EXPIRE)
-          : undefined,
+        expiresIn: +(process.env.JWT_EXPIRE ?? 8) * 60 * 60,
       },
     }),
     PlanModule,
