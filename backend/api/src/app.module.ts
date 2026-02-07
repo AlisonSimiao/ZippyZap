@@ -84,14 +84,9 @@ export class AppModule implements NestModule {
 
     consumer
       .apply(ApiKeyMiddleware)
-      .exclude(
-        { path: '/', method: RequestMethod.GET },
-        { path: '/auth/*path', method: RequestMethod.POST },
-        { path: '/plans', method: RequestMethod.GET },
-        { path: '/health', method: RequestMethod.GET },
-        { path: '/webhooks/(.*)', method: RequestMethod.ALL },
-        { path: '/payments/webhook', method: RequestMethod.POST },
-      )
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
+      .forRoutes(
+        { path: '/whatsapp', method: RequestMethod.ALL },
+        { path: '/whatsapp/*path', method: RequestMethod.ALL },
+      );
   }
 }
