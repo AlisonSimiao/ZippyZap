@@ -15,7 +15,24 @@ RUN npm prune --production
 
 FROM node:20-alpine
 WORKDIR /app
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+	DATABASE_URL="postgresql://postgres.tgyyvbbejknsvholpinc:NLpZMVjlLohD2RWG@aws-1-sa-east-1.pooler.supabase.com/postgres?pgbouncer=true" \
+	PORT=8080 \
+	REDIS_URL= \
+	REDIS_HOST=redis-16239.c345.samerica-east1-1.gce.cloud.redislabs.com \
+	REDIS_PASS=hS7IyGS2RB6ewjNXLmrH02LMuYWnekqv \
+	REDIS_PORT=16239 \
+	REDIS_USER=default \
+	JWT_SECRET=ksjbjacbajksbcjkab \
+	JWT_EXPIRE=8h \
+	MP_ACCESS_TOKEN='APP_USR-2522730503541842-112420-0bce678814e4d98a463976b73a96a440-2654936647' \
+	FRONTEND_URL=http://localhost:3000 \
+	BACKEND_URL=http://localhost:8080 \
+	MP_WEBHOOK_SECRET='your-webhook-secret-from-mercadopago' \
+	THROTTLE_PUBLIC_TTL=60000 \
+	THROTTLE_PUBLIC_LIMIT=20 \
+	THROTTLE_TTL=60000 \
+	THROTTLE_LIMIT=60
 ENV NODE_OPTIONS=--max-old-space-size=512
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
