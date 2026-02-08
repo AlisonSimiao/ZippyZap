@@ -7,10 +7,10 @@ export class RedisService {
 
   constructor() {
     RedisService.redisClient ??= new Redis({
-      host: 'localhost',
-      port: 6379,
-      username: 'default',
-      password: 'redis',
+      host: process.env.REDIS_HOST || 'localhost',
+      port: Number(process.env.REDIS_PORT) || 6379,
+      username: process.env.REDIS_USER || 'default',
+      password: process.env.REDIS_PASS || undefined,
     });
 
     RedisService.redisClient.on('error', (error) => {
@@ -56,5 +56,4 @@ export class RedisService {
   ): Promise<'OK'> {
     return RedisService.redisClient.set(key, value, 'EX', expiration);
   }
-
 }

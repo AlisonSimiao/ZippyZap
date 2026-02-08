@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
-import * as fs from 'fs';
 
 enum EEvent {
   Message = 'Message',
@@ -19,19 +18,19 @@ enum EEvent {
 }
 
 export interface WuzapiUser {
-  connected?: boolean,
-  events?: EEvent,
-  expiration?: number,
-  id?: string,
-  jid?: string,
-  loggedIn?: true,
-  name?: string,
-  proxy_config?: [Object],
-  proxy_url?: string,
-  qrcode?: string,
-  s3_config?: [Object],
-  token?: string,
-  webhook?: string,
+  connected?: boolean;
+  events?: EEvent;
+  expiration?: number;
+  id?: string;
+  jid?: string;
+  loggedIn?: true;
+  name?: string;
+  proxy_config?: [object];
+  proxy_url?: string;
+  qrcode?: string;
+  s3_config?: [object];
+  token?: string;
+  webhook?: string;
 }
 
 interface WuzapiQRResponse {
@@ -49,27 +48,37 @@ export class WuzapiClientService {
   private readonly logger = new Logger(WuzapiClientService.name);
   private readonly baseUrl: string;
   private readonly adminToken: string;
+  private readonly webhookUrl: string;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
     this.baseUrl =
-      this.configService.get<string>('WUZAPI_BASE_URL') || 'http://wuzapi:8080';
+      this.configService.get<string>('WUZAPI_BASE_URL') ||
+      'http://localhost:8082';
     this.adminToken =
       this.configService.get<string>('WUZAPI_ADMIN_TOKEN') || '';
+    this.webhookUrl =
+      this.configService.get<string>('WUZAPI_WEBHOOK_URL') || '';
 
     this.logger.log(
       `WuzAPI Configuration - Base URL: ${this.baseUrl}, Admin Token: ${this.adminToken ? '***' : 'NOT SET'}`,
     );
 
-    if (!this.adminToken) {
-      throw new Error('WUZAPI_ADMIN_TOKEN not configured!');
-    }
-
     if (!this.baseUrl) {
       throw new Error('WUZAPI_BASE_URL not configured!');
     }
+
+    if (!this.adminToken) {
+      throw new Error('WUZAPI_ADMIN_TOKEN not configured!');
+    }
+  }
+
+  private getAdminAuthHeader(): string {
+    return this.adminToken.startsWith('Bearer ')
+      ? this.adminToken
+      : `Bearer ${this.adminToken}`;
   }
 
   /**
@@ -82,19 +91,20 @@ export class WuzapiClientService {
       const userData: WuzapiUser = {
         name: userId,
         token: apiKeyHash,
-        webhook: process.env.WUZAPI_WEBHOOK_URL || '',
+        webhook: this.webhookUrl,
         events: EEvent.All,
       };
 
       const res = await firstValueFrom(
         this.httpService.post(`${this.baseUrl}/admin/users`, userData, {
           headers: {
-            Authorization: this.adminToken,
+            Authorization: this.getAdminAuthHeader(),
             'Content-Type': 'application/json',
           },
+          timeout: 10000,
         }),
       );
-      console.log(res);
+      void res;
       this.logger.log(`WuzAPI user created: ${userId}`);
     } catch (error: any) {
       if (
@@ -114,19 +124,21 @@ export class WuzapiClientService {
     }
   }
 
-
-
   /**
    * Get all users from WuzAPI
    */
   async getUsers(): Promise<WuzapiUser[]> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get<{ data: WuzapiUser[] }>(`${this.baseUrl}/admin/users`, {
-          headers: {
-            Authorization: this.adminToken,
+        this.httpService.get<{ data: WuzapiUser[] }>(
+          `${this.baseUrl}/admin/users`,
+          {
+            headers: {
+              Authorization: this.getAdminAuthHeader(),
+            },
+            timeout: 10000,
           },
-        }),
+        ),
       );
 
       return response.data?.data || [];
@@ -148,8 +160,9 @@ export class WuzapiClientService {
       await firstValueFrom(
         this.httpService.delete(`${this.baseUrl}/admin/users/${userId}`, {
           headers: {
-            Authorization: this.adminToken,
+            Authorization: this.getAdminAuthHeader(),
           },
+          timeout: 10000,
         }),
       );
 
@@ -175,6 +188,7 @@ export class WuzapiClientService {
           headers: {
             token: apiKeyHash,
           },
+          timeout: 10000,
         }),
       );
 
@@ -214,16 +228,15 @@ export class WuzapiClientService {
               token: apiKeyHash,
               'Content-Type': 'application/json',
             },
+            timeout: 10000,
           },
         ),
       );
 
-      const logMsg = `Message sent via WuzAPI for user ${userId} to ${to}. Response: ${JSON.stringify(response.data)}\n`;
-      this.logger.log(logMsg);
-      try { fs.appendFileSync('/tmp/wuzapi_debug.log', logMsg); } catch (e) { console.error(e); }
+      this.logger.log(
+        `Message sent via WuzAPI for user ${userId} to ${to}. Response: ${JSON.stringify(response.data)}`,
+      );
     } catch (error: any) {
-      const errorMsg = `Failed to send message for ${userId}: ${JSON.stringify(error?.response?.data || error?.message || error)}\n`;
-      try { fs.appendFileSync('/tmp/wuzapi_debug.log', errorMsg); } catch (e) { }
       this.logger.error(
         `Failed to send message for ${userId}:`,
         error?.response?.data || error?.message || error,
@@ -249,6 +262,7 @@ export class WuzapiClientService {
             headers: {
               token: apiKeyHash,
             },
+            timeout: 10000,
           },
         ),
       );
@@ -278,6 +292,7 @@ export class WuzapiClientService {
             headers: {
               token: apiKeyHash,
             },
+            timeout: 10000,
           },
         ),
       );
@@ -331,6 +346,7 @@ export class WuzapiClientService {
             headers: {
               token: apiKeyHash,
             },
+            timeout: 10000,
           },
         ),
       );
@@ -338,11 +354,10 @@ export class WuzapiClientService {
       this.logger.log(
         `Session started for user ${userId} with all events subscribed`,
       );
-    } catch (error: any) {
-      this.logger.error(
-        `Failed to start session for ${userId}:`,
-        error?.response?.data || error?.message || error,
-      );
+    } catch (error) {
+      const response = error['response']?.data || error?.message || error;
+
+      this.logger.error(`Failed to start session for ${userId}:`, response);
       throw error;
     }
   }
