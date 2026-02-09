@@ -10,10 +10,10 @@ FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production \
 	PORT=8080 \
-	REDIS_URL= \
-	REDIS_HOST=redis-16239.c345.samerica-east1-1.gce.cloud.redislabs.com \
-	REDIS_PASS=hS7IyGS2RB6ewjNXLmrH02LMuYWnekqv \
-	REDIS_PORT=16239 \
+	REDIS_URL=redis://default:2x7zswfsjgdqnrla@zippyzap-redis-rcqynn:6379 \
+	REDIS_HOST=zippyzap-redis-rcqynn \
+	REDIS_PASS=2x7zswfsjgdqnrla \
+	REDIS_PORT=6379 \
 	REDIS_USER=default \
     WUZAPI_ADMIN_TOKEN=admin \
 	WUZAPI_BASE_URL=http://wuzapi:3002 \

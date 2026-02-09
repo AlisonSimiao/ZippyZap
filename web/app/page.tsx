@@ -554,8 +554,13 @@ func main() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-[#333333] transition-colors">
-                    Comunidade
+                  <a
+                    href="https://discord.gg/ntzVaqUD"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#333333] transition-colors"
+                  >
+                    Comunidade (Discord)
                   </a>
                 </li>
               </ul>

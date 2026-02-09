@@ -18,10 +18,10 @@ WORKDIR /app
 ENV NODE_ENV=production \
 	DATABASE_URL="postgresql://postgres.tgyyvbbejknsvholpinc:NLpZMVjlLohD2RWG@aws-1-sa-east-1.pooler.supabase.com/postgres?pgbouncer=true" \
 	PORT=8080 \
-	REDIS_URL= \
-	REDIS_HOST=redis-16239.c345.samerica-east1-1.gce.cloud.redislabs.com \
-	REDIS_PASS=hS7IyGS2RB6ewjNXLmrH02LMuYWnekqv \
-	REDIS_PORT=16239 \
+	REDIS_URL=redis://default:2x7zswfsjgdqnrla@zippyzap-redis-rcqynn:6379 \
+	REDIS_HOST=zippyzap-redis-rcqynn \
+	REDIS_PASS=2x7zswfsjgdqnrla \
+	REDIS_PORT=6379 \
 	REDIS_USER=default \
 	JWT_SECRET=ksjbjacbajksbcjkab \
 	JWT_EXPIRE=8 \
