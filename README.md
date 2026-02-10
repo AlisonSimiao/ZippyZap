@@ -208,7 +208,7 @@ REDIS_PORT=6379
 REDIS_PASS="redis-password"
 REDIS_USER="default"
 JWT_SECRET="your-jwt-secret"
-JWT_EXPIRE="8h"
+JWT_EXPIRE="8"
 MP_ACCESS_TOKEN="your-mercadopago-token"
 PORT=8080
 ```

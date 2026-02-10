@@ -127,7 +127,7 @@ app.post('/webhook', async (req, res) => {
   
   const responses = {
     'oi': 'Olá! Como posso ajudar?',
-    'horario': 'Funcionamos de segunda a sexta, das 9h às 18h.',
+    'horario': 'Funcionamos de segunda a sexta, das 9h às 18.',
     'suporte': 'Vou transferir você para um atendente. Aguarde...'
   };
   

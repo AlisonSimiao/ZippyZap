@@ -1,3 +1,6 @@
 **/*.key*
 **/certbot
 **/ssl
+/wuzapi
+*.pem
+wuzapi

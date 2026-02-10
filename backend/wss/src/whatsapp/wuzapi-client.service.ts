@@ -76,9 +76,7 @@ export class WuzapiClientService {
   }
 
   private getAdminAuthHeader(): string {
-    return this.adminToken.startsWith('Bearer ')
-      ? this.adminToken
-      : `Bearer ${this.adminToken}`;
+    return this.adminToken;
   }
 
   /**
