@@ -35,6 +35,48 @@ export class WebhookProcessor extends WorkerHost {
   async process(job: Job<IWebhookJob>): Promise<any> {
     this.logger.log(`Processing job ${job.id} -`, job.data);
 
+    // ====== Special handling for internal events (QR, status) ======
+    // These events need to be stored in Redis for system state management
+    // They should NOT be forwarded to user webhooks
+
+    if (job.data.type === 'QR') {
+      // Store QR code in Redis
+      const ttlSeconds = Math.max(
+        Math.floor((job.data.data.expireAt - Date.now()) / 1000),
+        60, // Minimum 60 seconds
+      );
+
+      await this.redis.setWithExpiration(
+        `user:${job.data.idUser}:qrcode`,
+        JSON.stringify(job.data.data),
+        ttlSeconds,
+      );
+
+      this.logger.log(
+        `QR code saved to Redis for user ${job.data.idUser} (TTL: ${ttlSeconds}s)`,
+      );
+      return; // Don't send to user webhooks
+    }
+
+    if (job.data.type === 'session.connected') {
+      // Store connected status and clear QR code
+      await this.redis.set(`user:${job.data.idUser}:status`, 'connected');
+      await this.redis.delete(`user:${job.data.idUser}:qrcode`);
+
+      this.logger.log(`User ${job.data.idUser} status updated to: connected`);
+      return; // Don't send to user webhooks
+    }
+
+    if (job.data.type === 'session.disconnected') {
+      // Store disconnected status
+      await this.redis.set(`user:${job.data.idUser}:status`, 'disconnected');
+
+      this.logger.log(`User ${job.data.idUser} status updated to: disconnected`);
+      return; // Don't send to user webhooks
+    }
+
+    // ====== Normal webhook forwarding for user events ======
+
     const cacheKey = `webhook:${job.data.idUser}:${job.data.type}`;
     const cachedData = await this.redis.get(cacheKey);
     let webhookData: IWebhookData;
