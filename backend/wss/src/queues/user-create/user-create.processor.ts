@@ -42,7 +42,26 @@ export class UserCreate extends WorkerHost {
       // Create WuzAPI user if not exists
       await this.wuzapiClient.createWuzapiUser(idUser, userApiKeyHash);
 
-      // Start WhatsApp session
+      // Check if session is already connected
+      this.logger.log(`Checking connection status for user ${idUser}...`);
+      const status = await this.wuzapiClient.getConnectionStatus(
+        idUser,
+        userApiKeyHash,
+      );
+
+      if (status === 'connected') {
+        this.logger.log(
+          `User ${idUser} is already connected. Logging out to generate new QR code...`,
+        );
+        // Logout first to allow new QR code generation
+        await this.wuzapiClient.logout(idUser, userApiKeyHash);
+
+        // Wait a bit for logout to complete
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      // Start WhatsApp session (will generate QR code)
+      this.logger.log(`Starting session for user ${idUser}...`);
       await this.wuzapiClient.startSession(idUser, userApiKeyHash);
 
       this.logger.log(`Session creation initiated for user ${idUser}`);
