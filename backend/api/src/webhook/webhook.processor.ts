@@ -33,12 +33,12 @@ export class WebhookProcessor extends WorkerHost {
   }
 
   async process(job: Job<IWebhookJob>): Promise<any> {
-    this.logger.log(`Processing job ${job.id} -`, job.data);
+    this.logger.log(`Processing job ${job.id} - ${job.data.type}`, job.data);
 
     // ====== Special handling for internal events (QR, status) ======
     // These events need to be stored in Redis for system state management
     // They should NOT be forwarded to user webhooks
-
+    console.log(job.data.type, job.data.data);
     if (job.data.type === 'QR') {
       // Store QR code in Redis
       const ttlSeconds = Math.max(
