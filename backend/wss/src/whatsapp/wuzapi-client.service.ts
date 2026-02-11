@@ -63,7 +63,10 @@ export class WuzapiClientService {
       this.configService.get<string>('WUZAPI_WEBHOOK_URL') || '';
 
     this.logger.log(
-      `WuzAPI Configuration - Base URL: ${this.baseUrl}, Admin Token: ${this.adminToken || 'NOT SET'}`,
+      `WuzAPI Configuration - Base URL: ${this.baseUrl}, Admin Token: ${this.adminToken ? '***' : 'NOT SET'}`,
+    );
+    this.logger.debug(
+      `Admin Token Length: ${this.adminToken?.length || 0}, Type: ${typeof this.adminToken}`,
     );
 
     if (!this.baseUrl) {
