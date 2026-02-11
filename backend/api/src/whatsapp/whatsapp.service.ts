@@ -9,7 +9,7 @@ export class WhatsappService {
   constructor(
     @InjectQueue('send-message') private readonly sendMessageQueue: Queue,
     private readonly redisService: RedisService,
-  ) {}
+  ) { }
 
   normalizePhone(phone: string) {
     phone = phone.replace(/\D/g, ''); // remove tudo que não é número
@@ -32,7 +32,7 @@ export class WhatsappService {
         text,
       },
       {
-        jobId: `${userId}:${phone}:${format(new Date(), "yyyy-MM-dd'T'HH:mm:ss'-03:00'")}`,
+        jobId: `${userId}-${phone}-${format(new Date(), "yyyy-MM-dd'T'HH-mm-ss")}`,
       },
     );
   }
