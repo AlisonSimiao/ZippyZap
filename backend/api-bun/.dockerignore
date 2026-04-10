@@ -1,0 +1,7 @@
+node_modules
+dist
+tests
+prisma/*.db
+*.test.ts
+.git
+.env.example

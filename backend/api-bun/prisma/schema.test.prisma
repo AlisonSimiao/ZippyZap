@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("TEST_DATABASE_URL")
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  whatsapp      String         @unique
+  password      String
+  name          String?
+  isActive      Boolean        @default(true)
+  webhookUrl    String?
+  retentionDays Int            @default(30)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  messages      Message[]
+  Plan          Plan           @relation(fields: [planId], references: [id])
+  planId        Int            @default(1)
+  ApiKeys       ApiKey[]
+  payments      Payment[]
+  subscriptions Subscription[]
+  webhooks      Webhook[]
+
+  @@map("users")
+}
+
+model ApiKey {
+  id         Int           @id @default(autoincrement())
+  name       String?
+  hash       String        @unique
+  userId     Int
+  status     String        @default("ACTIVE")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  lastUsedAt DateTime      @default(now())
+  User       User          @relation(fields: [userId], references: [id])
+
+  @@unique([userId, hash])
+  @@map("api_keys")
+}
+
+model Plan {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  dailyLimit   Int      @default(0)
+  monthlyLimit Int      @default(0)
+  sessionLimit Int      @default(1)
+  price        Float    @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  User         User[]
+
+  @@map("plans")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  userId    Int
+  to        String
+  content   String
+  messageId String?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("messages")
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  planId        Int
+  mercadoPagoId String  @unique
+  preferenceId  String?
+  amount        Float   @default(0)
+  status        String  @default("PENDING")
+  paymentType   String?
+  paymentMethod String?
+  metadata      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id])
+  subscriptions Subscription[]
+
+  @@map("payments")
+}
+
+model Subscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  planId    Int
+  paymentId Int?
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id])
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Webhook {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  url       String
+  name      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  webhookEvents WebhookEvent[]
+  logs          WebhookLog[]
+
+  @@map("webhooks")
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  webhooks    WebhookEvent[]
+
+  @@map("events")
+}
+
+model WebhookEvent {
+  id        Int      @id @default(autoincrement())
+  webhookId Int
+  eventId   Int
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([webhookId, eventId])
+  @@map("webhook_events")
+}
+
+model WebhookLog {
+  id        Int      @id @default(autoincrement())
+  webhookId Int
+  event     String
+  payload   String
+  status    Int
+  response  String?
+  duration  Int
+  createdAt DateTime @default(now())
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@map("webhook_logs")
+}

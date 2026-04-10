@@ -29,6 +29,9 @@ export default function ApiKeysPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
+    if (!accessToken) {
+      return
+    }
     api.getApiKeys(accessToken)
     .then(data => {
       setApiKeys(data)
@@ -36,7 +39,7 @@ export default function ApiKeysPage() {
     .catch(error => {
       console.error('Error fetching API keys:', error)
     })
-  }, [])
+  }, [accessToken])
 
   return (
     <>

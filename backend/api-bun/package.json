@@ -1,0 +1,39 @@
+{
+  "name": "zapi-bun",
+  "version": "1.0.0",
+  "description": "ZippyZap API - Bun + Elysia",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "./api-bun",
+    "build": "bun build src/index.ts --target=bun --compile --outfile=api-bun",
+    "test": "bun test tests/utils.test.ts tests/health.test.ts",
+    "test:all": "bun test",
+    "test:setup": "bun run tests/setup-db.ts",
+    "db:generate": "bunx prisma generate",
+    "db:generate:test": "bunx prisma generate --schema=prisma/schema.test.prisma",
+    "db:migrate": "bunx prisma migrate dev",
+    "db:migrate:test": "bunx prisma migrate dev --schema=prisma/schema.test.prisma --skip-generate",
+    "db:push:test": "bunx prisma db push --schema=prisma/schema.test.prisma --skip-generate",
+    "db:seed": "bun run prisma/seed.ts",
+    "db:studio": "bunx prisma studio"
+  },
+  "dependencies": {
+    "elysia": "^1.2.25",
+    "@elysiajs/cors": "^1.2.0",
+    "@elysiajs/swagger": "^1.2.0",
+    "@elysiajs/jwt": "^1.2.0",
+    "@prisma/client": "^6.14.0",
+    "ioredis": "^5.9.0",
+    "bcrypt": "^6.0.0",
+    "mercadopago": "^2.8.0",
+    "date-fns": "^4.1.0",
+    "nanoid": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "bun-types": "latest",
+    "prisma": "^6.14.0",
+    "typescript": "^5.7.0"
+  }
+}

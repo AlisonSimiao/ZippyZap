@@ -1,45 +1,37 @@
 services:
-  #api:
-  #  build:
-  #    context: ./../api
-  #    dockerfile: Dockerfile
-  #    args:
-  #      APP_NAME: api
-  #  container_name: nest_api
-  #  environment:
-  #    - DATABASE_URL=postgresql://postgres.tgyyvbbejknsvholpinc:NLpZMVjlLohD2RWG@aws-1-sa-east-1.pooler.supabase.com/postgres?pgbouncer=true
-  #    - PORT=8080
-  #    - REDIS_HOST=redis-17498.crce207.sa-east-1-2.ec2.redns.redis-cloud.com
-  #    - REDIS_PASS=pxSrCrvgRoTfWfcsqupckoYjrYQPkSfu
-  #    - REDIS_PORT=17498
-  #    - REDIS_USER=default
-  #    - JWT_SECRET=ksjbjacbajksbcjkab
-  #    - JWT_EXPIRE=8h
-  #    - MP_ACCESS_TOKEN='APP_USR-3129267535532433-082920-628114561e1b3c15b7c56e0f822396ce-245147832'
-  #  ports:
-  #     - "8080:8080"
-
-  # worker:
-  #   build:
-  #     context: ./../wss
-  #     dockerfile: Dockerfile
-  #     args:
-  #       APP_NAME: worker
-  #   container_name: nest_worker
-  #   environment:
-  #     - NODE_ENV=production
-  #     - DATABASE_URL=postgresql://postgres.tgyyvbbejknsvholpinc:NLpZMVjlLohD2RWG@aws-1-sa-east-1.pooler.supabase.com/postgres?pgbouncer=true
-  #     - REDIS_HOST=zapi-redis
-  #     - REDIS_PASS=
-  #     - REDIS_PORT=6379
-  #     - REDIS_USER=
-  #     - WUZAPI_BASE_URL=http://wuzapi:8080
-  #     - WUZAPI_ADMIN_TOKEN=${WUZAPI_ADMIN_TOKEN:-your-secure-admin-token-here}
-  #   volumes:
-  #     - ./.data/tokens:/app/tokens
-  #   depends_on:
-  #     - wuzapi
-  #     - redis
+  api-bun:
+    build:
+      context: ./../api-bun
+      dockerfile: Dockerfile
+    container_name: zapi-api-bun
+    environment:
+      - DATABASE_URL=postgresql://meuuser:minhasenha@zapi-postgres:5432/zippyzap
+      - PORT=8080
+      - REDIS_HOST=zapi-redis
+      - REDIS_PORT=6379
+      - REDIS_USER=
+      - REDIS_PASS=
+      - JWT_SECRET=ksjbjacbajksbcjkab
+      - JWT_EXPIRE=8
+      - MP_ACCESS_TOKEN=${MP_ACCESS_TOKEN:-'your-mercadopago-access-token'}
+      - MP_WEBHOOK_SECRET=${MP_WEBHOOK_SECRET:-'your-webhook-secret-from-mercadopago'}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - BACKEND_URL=http://localhost:8080
+      - WUZAPI_BASE_URL=http://zapi-wuzapi:8082
+      - WUZAPI_ADMIN_TOKEN=${WUZAPI_ADMIN_TOKEN:-admin}
+      - WUZAPI_WEBHOOK_URL=http://zapi-api-bun:8080/webhooks/wuzapi
+      - THROTTLE_PUBLIC_TTL=60000
+      - THROTTLE_PUBLIC_LIMIT=20
+      - THROTTLE_TTL=60000
+      - THROTTLE_LIMIT=60
+      - ADMIN_EMAILS=${ADMIN_EMAILS:-admin@example.com}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+      - wuzapi
+    restart: unless-stopped
 
   wuzapi:
     image: asternic/wuzapi
@@ -74,7 +66,6 @@ services:
       - "5432:5432"
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
-      - ./init-wuzapi-db.sql:/docker-entrypoint-initdb.d/init-wuzapi-db.sql
 
   redis:
     image: redis:7-alpine
@@ -83,24 +74,3 @@ services:
       - "6379:6379"
     volumes:
       - ./.data/redis:/data
-
-  proxy:
-    image: nginx:alpine
-    container_name: nginx_proxy
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./ssl:/etc/nginx/ssl
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    command: certonly --webroot --webroot-path=/var/www/certbot --email alison.simiao@gmail.com --agree-tos --no-eff-email -d zippy-zap.duckdns.org
