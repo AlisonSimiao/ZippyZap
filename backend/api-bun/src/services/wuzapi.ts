@@ -2,17 +2,110 @@
  * WuzAPI HTTP Client — replaces WSS WuzapiClientService
  *
  * Uses native Bun fetch instead of axios/HttpService.
+ * Includes retry, circuit breaker, and dynamic timeouts.
  */
 
-const BASE_URL = Bun.env.WUZAPI_BASE_URL || 'http://localhost:8082';
+const BASE_URL = Bun.env.WUZAPI_BASE_URL || 'http://localhost:8080';
 const ADMIN_TOKEN = Bun.env.WUZAPI_ADMIN_TOKEN || '';
 const WEBHOOK_URL = Bun.env.WUZAPI_WEBHOOK_URL || '';
 
-async function wuzapiFetch(
+const NON_IDEMPOTENT_PATHS = [
+  '/chat/send/text',
+  '/session/connect',
+  '/session/logout',
+];
+
+function isNonIdempotent(path: string): boolean {
+  return NON_IDEMPOTENT_PATHS.some((p) => path.startsWith(p));
+}
+
+const TIMEouts = {
+  '/admin/users': 10000,
+  '/session/qr': 10000,
+  '/session/status': 5000,
+  '/chat/send/text': 15000,
+  '/session/connect': 30000,
+  '/session/logout': 10000,
+};
+
+interface CircuitBreakerState {
+  failures: number;
+  lastFailure: number;
+  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+}
+
+const circuitBreaker: CircuitBreakerState = {
+  failures: 0,
+  lastFailure: 0,
+  state: 'CLOSED',
+};
+
+const CIRCUIT_THRESHOLD = 5;
+const CIRCUIT_RESET_MS = 30000;
+
+function shouldRetry(error: Error): boolean {
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('fetch failed') ||
+    message.includes('econnrefused') ||
+    message.includes('timeout') ||
+    message.includes('network')
+  );
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getTimeout(path: string): number {
+  for (const [prefix, timeout] of Object.entries(TIMEouts)) {
+    if (path.startsWith(prefix)) return timeout;
+  }
+  return 10000;
+}
+
+function checkCircuitBreaker(): boolean {
+  const now = Date.now();
+
+  if (circuitBreaker.state === 'OPEN') {
+    if (now - circuitBreaker.lastFailure > CIRCUIT_RESET_MS) {
+      circuitBreaker.state = 'HALF_OPEN';
+      console.log('[CircuitBreaker] HALF_OPEN - testing connection...');
+      return true;
+    }
+    console.log('[CircuitBreaker] OPEN - rejecting request');
+    return false;
+  }
+
+  return true;
+}
+
+function recordSuccess(): void {
+  circuitBreaker.failures = 0;
+  circuitBreaker.state = 'CLOSED';
+}
+
+function recordFailure(): void {
+  circuitBreaker.failures++;
+  circuitBreaker.lastFailure = Date.now();
+
+  if (circuitBreaker.failures >= CIRCUIT_THRESHOLD) {
+    circuitBreaker.state = 'OPEN';
+    console.error(`[CircuitBreaker] OPEN - too many failures (${circuitBreaker.failures})`);
+  }
+}
+
+async function wuzapiFetchWithRetry(
   path: string,
-  options: RequestInit & { token?: string } = {},
+  options: RequestInit & { token?: string; timeout?: number } = {},
+  maxRetries = 3,
 ): Promise<any> {
-  const { token, ...fetchOptions } = options;
+  if (!checkCircuitBreaker()) {
+    throw new Error('Circuit breaker OPEN');
+  }
+
+  const timeout = options.timeout || getTimeout(path);
+  const { token, timeout: _, ...fetchOptions } = options;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -23,27 +116,62 @@ async function wuzapiFetch(
     headers['token'] = token;
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...fetchOptions,
-    headers,
-    signal: AbortSignal.timeout(10000),
-  });
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(`WuzAPI ${path} failed: ${response.status} ${text}`);
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(`${BASE_URL}${path}`, {
+        ...fetchOptions,
+        headers,
+        signal: AbortSignal.timeout(timeout),
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+
+        if (response.status === 409) {
+          recordSuccess();
+          throw new Error(`409 ${text}`);
+        }
+
+        if (response.status >= 500) {
+          lastError = new Error(`WuzAPI ${path} failed: ${response.status} ${text}`);
+          recordFailure();
+          if (attempt < maxRetries - 1 && !isNonIdempotent(path)) {
+            const delay = 1000 * Math.pow(2, attempt);
+            console.log(`[WuzAPI] Retry ${attempt + 1}/${maxRetries} after ${delay}ms`);
+            await sleep(delay);
+            continue;
+          }
+          throw lastError;
+        }
+
+        throw new Error(`WuzAPI ${path} failed: ${response.status} ${text}`);
+      }
+
+      recordSuccess();
+      return response.json().catch(() => null);
+    } catch (error: any) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (shouldRetry(lastError) && attempt < maxRetries - 1) {
+        const delay = 1000 * Math.pow(2, attempt);
+        console.log(`[WuzAPI] Retry ${attempt + 1}/${maxRetries} after ${delay}ms: ${lastError.message}`);
+        await sleep(delay);
+      } else {
+        recordFailure();
+        throw lastError;
+      }
+    }
   }
 
-  return response.json().catch(() => null);
+  throw lastError;
 }
 
 export const wuzapiClient = {
-  /**
-   * Create a user in WuzAPI
-   */
   async createWuzapiUser(userId: string, apiKeyHash: string): Promise<void> {
     try {
-      await wuzapiFetch('/admin/users', {
+      await wuzapiFetchWithRetry('/admin/users', {
         method: 'POST',
         headers: {
           Authorization: ADMIN_TOKEN,
@@ -57,22 +185,19 @@ export const wuzapiClient = {
       });
       console.log(`[WuzAPI] User created: ${userId}`);
     } catch (error: any) {
-      // 409 = user already exists, that's OK
-      if (error.message?.includes('409')) {
+      if (error instanceof Error && error.message?.includes('409')) {
         console.log(`[WuzAPI] User ${userId} already exists, skipping.`);
         return;
       }
-      console.error(`[WuzAPI] Failed to create user ${userId}:`, error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[WuzAPI] Failed to create user ${userId}:`, errorMessage);
       throw error;
     }
   },
 
-  /**
-   * Get all users from WuzAPI
-   */
   async getUsers(): Promise<any[]> {
     try {
-      const response = await wuzapiFetch('/admin/users', {
+      const response = await wuzapiFetchWithRetry('/admin/users', {
         method: 'GET',
         headers: {
           Authorization: ADMIN_TOKEN,
@@ -85,12 +210,9 @@ export const wuzapiClient = {
     }
   },
 
-  /**
-   * Delete a user from WuzAPI
-   */
   async deleteWuzapiUser(userId: string): Promise<void> {
     try {
-      await wuzapiFetch(`/admin/users/${userId}`, {
+      await wuzapiFetchWithRetry(`/admin/users/${userId}`, {
         method: 'DELETE',
         headers: {
           Authorization: ADMIN_TOKEN,
@@ -103,31 +225,22 @@ export const wuzapiClient = {
     }
   },
 
-  /**
-   * Get QR code for WhatsApp session
-   */
   async getQRCode(
     userId: string,
     apiKeyHash: string,
   ): Promise<string | null> {
     try {
-      const response = await wuzapiFetch('/session/qr', {
+      const response = await wuzapiFetchWithRetry('/session/qr', {
         method: 'GET',
         token: apiKeyHash,
       });
       return response?.qrcode || null;
     } catch (error: any) {
-      console.error(
-        `[WuzAPI] Failed to get QR code for ${userId}:`,
-        error.message,
-      );
+      console.error(`[WuzAPI] Failed to get QR code for ${userId}:`, error.message);
       return null;
     }
   },
 
-  /**
-   * Send a text message via WuzAPI
-   */
   async sendMessage(
     userId: string,
     apiKeyHash: string,
@@ -135,7 +248,7 @@ export const wuzapiClient = {
     text: string,
   ): Promise<void> {
     try {
-      const response = await wuzapiFetch('/chat/send/text', {
+      const response = await wuzapiFetchWithRetry('/chat/send/text', {
         method: 'POST',
         token: apiKeyHash,
         body: JSON.stringify({
@@ -143,66 +256,45 @@ export const wuzapiClient = {
           Body: text,
         }),
       });
-      console.log(
-        `[WuzAPI] Message sent for user ${userId} to ${to}. Response:`,
-        JSON.stringify(response),
-      );
+      console.log(`[WuzAPI] Message sent for user ${userId} to ${to}. Response:`, JSON.stringify(response));
     } catch (error: any) {
-      console.error(
-        `[WuzAPI] Failed to send message for ${userId}:`,
-        error.message,
-      );
+      console.error(`[WuzAPI] Failed to send message for ${userId}:`, error.message);
       throw error;
     }
   },
 
-  /**
-   * Get connection status for a user
-   */
   async getConnectionStatus(
     userId: string,
     apiKeyHash: string,
   ): Promise<'connected' | 'disconnected'> {
     try {
-      const response = await wuzapiFetch('/session/status', {
+      const response = await wuzapiFetchWithRetry('/session/status', {
         method: 'GET',
         token: apiKeyHash,
       });
       return response?.connected ? 'connected' : 'disconnected';
     } catch (error: any) {
-      console.error(
-        `[WuzAPI] Failed to get status for ${userId}:`,
-        error.message,
-      );
+      console.error(`[WuzAPI] Failed to get status for ${userId}:`, error.message);
       return 'disconnected';
     }
   },
 
-  /**
-   * Logout from WhatsApp session
-   */
   async logout(userId: string, apiKeyHash: string): Promise<void> {
     try {
-      await wuzapiFetch('/session/logout', {
+      await wuzapiFetchWithRetry('/session/logout', {
         method: 'POST',
         token: apiKeyHash,
       });
       console.log(`[WuzAPI] User ${userId} logged out`);
     } catch (error: any) {
-      console.error(
-        `[WuzAPI] Failed to logout ${userId}:`,
-        error.message,
-      );
+      console.error(`[WuzAPI] Failed to logout ${userId}:`, error.message);
       throw error;
     }
   },
 
-  /**
-   * Start a WhatsApp session (connect)
-   */
   async startSession(userId: string, apiKeyHash: string): Promise<void> {
     try {
-      await wuzapiFetch('/session/connect', {
+      await wuzapiFetchWithRetry('/session/connect', {
         method: 'POST',
         token: apiKeyHash,
         body: JSON.stringify({
@@ -228,15 +320,18 @@ export const wuzapiClient = {
           Immediate: true,
         }),
       });
-      console.log(
-        `[WuzAPI] Session started for user ${userId} with all events subscribed`,
-      );
+      console.log(`[WuzAPI] Session started for user ${userId} with all events subscribed`);
     } catch (error: any) {
-      console.error(
-        `[WuzAPI] Failed to start session for ${userId}:`,
-        error.message,
-      );
+      console.error(`[WuzAPI] Failed to start session for ${userId}:`, error.message);
       throw error;
     }
+  },
+
+  getCircuitState(): string {
+    return circuitBreaker.state;
+  },
+
+  isHealthy(): boolean {
+    return circuitBreaker.state !== 'OPEN';
   },
 };

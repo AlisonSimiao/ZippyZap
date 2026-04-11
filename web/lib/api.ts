@@ -175,6 +175,14 @@ class ApiClient {
       headers: { Authorization: `Bearer ${accessToken}` }
     }).then(({ data }) => data);
   }
+
+  async getHealthStatus(): Promise<any> {
+    return this.client.get('/health').then(({ data }) => data);
+  }
+
+  async getWuzapiHealth(): Promise<any> {
+    return this.client.get('/health/wuzapi').then(({ data }) => data);
+  }
 }
 
 export const api = ApiClient.getInstance()

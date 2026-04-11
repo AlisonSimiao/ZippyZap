@@ -15,12 +15,11 @@ import { dashboardRoutes } from './routes/dashboard';
 import { healthRoutes } from './routes/health';
 import { planRoutes } from './routes/plans';
 
-import { authMiddleware } from './middleware/jwt';
-import { requestLogMiddleware } from './middleware/request-log';
+import { authMiddleware, requestLogger } from './middleware/jwt';
 
 export function createApp() {
   const app = new Elysia()
-    .use(requestLogMiddleware)
+    .use(requestLogger)
     .use(
       cors({
         origin: '*',

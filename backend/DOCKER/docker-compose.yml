@@ -17,8 +17,8 @@ services:
       - MP_WEBHOOK_SECRET=${MP_WEBHOOK_SECRET:-'your-webhook-secret-from-mercadopago'}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
       - BACKEND_URL=http://localhost:8080
-      - WUZAPI_BASE_URL=http://zapi-wuzapi:8082
-      - WUZAPI_ADMIN_TOKEN=${WUZAPI_ADMIN_TOKEN:-admin}
+      - WUZAPI_BASE_URL=http://zapi-wuzapi:8080
+      - WUZAPI_ADMIN_TOKEN=${WUZAPI_ADMIN_TOKEN}
       - WUZAPI_WEBHOOK_URL=http://zapi-api-bun:8080/webhooks/wuzapi
       - THROTTLE_PUBLIC_TTL=60000
       - THROTTLE_PUBLIC_LIMIT=20
