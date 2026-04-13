@@ -73,29 +73,29 @@ export default function ApiReference() {
 
     return (
         <div id="api-reference" className="mb-20 mt-20">
-            <h2 className="text-4xl font-serif font-bold text-[#333333] mb-8 flex items-center gap-3">
-                <Code className="w-10 h-10 text-[#0066FF]" />
+            <h2 className="text-4xl font-serif font-bold text-foreground mb-8 flex items-center gap-3">
+                <Code className="w-10 h-10 text-primary" />
                 API Reference
             </h2>
-            <Card className="mb-8 border-[#25D366]/20">
+            <Card className="mb-8 border-white/5 bg-white/[0.02] backdrop-blur-sm">
                 <CardHeader>
                     <CardTitle className="text-xl">Status da Sessão</CardTitle>
-                    <CardDescription>Possíveis estados da conexão com o WhatsApp</CardDescription>
+                    <CardDescription className="text-foreground/50">Possíveis estados da conexão com o WhatsApp</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto rounded-xl border border-white/5">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-[#F5F5F5] text-[#333333]">
+                            <thead className="bg-white/5 text-foreground/40 font-bold uppercase tracking-[0.1em] text-[10px]">
                                 <tr>
-                                    <th className="p-3 rounded-tl-lg">Status</th>
-                                    <th className="p-3 rounded-tr-lg">Significado</th>
+                                    <th className="p-4">Status</th>
+                                    <th className="p-4">Significado</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-white/5">
                                 {sessionStatuses.map((item, idx) => (
-                                    <tr key={idx} className="hover:bg-gray-50">
-                                        <td className="p-3 font-mono text-[#0066FF]">{item.status}</td>
-                                        <td className="p-3 text-[#333333]/80">{item.description}</td>
+                                    <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
+                                        <td className="p-4 font-mono text-primary">{item.status}</td>
+                                        <td className="p-4 text-foreground/70">{item.description}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -106,30 +106,30 @@ export default function ApiReference() {
 
             <div className="space-y-6">
                 {apiRoutes.map((route, index) => (
-                    <Card key={index} className="border-[#25D366]/20">
+                    <Card key={index} className="border-white/5 bg-white/[0.02] backdrop-blur-sm group">
                         <CardHeader>
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <Badge className="bg-[#25D366] text-white">{route.method}</Badge>
-                                        <code className="text-lg font-mono">{route.path}</code>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <Badge className="bg-primary text-primary-foreground border-none font-bold uppercase tracking-[0.1em] px-3 py-0.5">{route.method}</Badge>
+                                        <code className="text-lg font-mono text-primary">{route.path}</code>
                                     </div>
-                                    <CardTitle className="text-xl">{route.title}</CardTitle>
-                                    <CardDescription className='text-[#333333]/60'>{route.description}</CardDescription>
+                                    <CardTitle className="text-xl mb-2">{route.title}</CardTitle>
+                                    <CardDescription className='text-foreground/50'>{route.description}</CardDescription>
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {route.headers && route.headers.length > 0 && (
                                 <div>
-                                    <h4 className="font-semibold text-[#333333] mb-3">Headers</h4>
-                                    <div className="bg-[#F5F5F5] p-4 rounded-lg space-y-2 text-sm">
+                                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-4">Headers</h4>
+                                    <div className="bg-black/20 p-4 rounded-xl border border-white/5 space-y-3 text-sm">
                                         {route.headers.map((header, idx) => (
-                                            <div key={idx} className="flex items-start gap-2">
-                                                <code className="text-[#0066FF]">{header.name}</code>
-                                                <span className="text-[#333333]/60">{header.type}</span>
-                                                <Badge variant="outline" className="text-xs">{header.badge}</Badge>
-                                                <span className="text-[#333333]/70">{header.description}</span>
+                                            <div key={idx} className="flex flex-wrap items-center gap-3">
+                                                <code className="text-primary font-bold">{header.name}</code>
+                                                <span className="text-foreground/40 text-[10px] uppercase font-bold">{header.type}</span>
+                                                <Badge variant="outline" className="text-[9px] uppercase font-bold border-primary/20 text-primary/80 h-5 px-1.5">{header.badge}</Badge>
+                                                <span className="text-foreground/70">{header.description}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -137,14 +137,14 @@ export default function ApiReference() {
                             )}
                             {route.bodyParams && route.bodyParams.length > 0 && (
                                 <div>
-                                    <h4 className="font-semibold text-[#333333] mb-3">Body Parameters</h4>
-                                    <div className="bg-[#F5F5F5] p-4 rounded-lg space-y-3 text-sm">
+                                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-4">Body Parameters</h4>
+                                    <div className="bg-black/20 p-4 rounded-xl border border-white/5 space-y-4 text-sm">
                                         {route.bodyParams.map((param, idx) => (
-                                            <div key={idx} className="flex items-start gap-2">
-                                                <code className="text-[#0066FF]">{param.name}</code>
-                                                <span className="text-[#333333]/60">{param.type}</span>
-                                                <Badge variant="outline" className="text-xs">{param.badge}</Badge>
-                                                <span className="text-[#333333]/70">{param.description}</span>
+                                            <div key={idx} className="flex flex-wrap items-center gap-3">
+                                                <code className="text-primary font-bold">{param.name}</code>
+                                                <span className="text-foreground/40 text-[10px] uppercase font-bold">{param.type}</span>
+                                                <Badge variant="outline" className="text-[9px] uppercase font-bold border-primary/20 text-primary/80 h-5 px-1.5">{param.badge}</Badge>
+                                                <span className="text-foreground/70">{param.description}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -152,8 +152,8 @@ export default function ApiReference() {
                             )}
                             {route.response && (
                                 <div>
-                                    <h4 className="font-semibold text-[#333333] mb-3">Response</h4>
-                                    <CodeBlock code={route.response} language="json" />
+                                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-4">Response</h4>
+                                    <CodeBlock code={route.response} language="json" className="bg-black/50 border-white/5 rounded-xl shadow-2xl" />
                                 </div>
                             )}
                         </CardContent>

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { HEADERS } from '@/components/Header'
+import { Sidebar } from '@/components/Sidebar'
 import { AuthProvider } from '@/hooks/useAuth'
 
 interface PrivateLayoutProps {
@@ -32,13 +33,16 @@ export default function PrivateLayout({ children }: PrivateLayoutProps) {
   const accessToken = (session as unknown as { accessToken: string }).accessToken
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <HEADERS.DashboardHeader />
-      <AuthProvider accessToken={accessToken}>
-        <div className="flex flex-1">
-          {children}
+    <AuthProvider accessToken={accessToken}>
+      <div className="flex h-screen bg-background overflow-hidden w-full">
+        <Sidebar />
+        <div className="flex flex-col flex-1 min-w-0">
+          <HEADERS.DashboardHeader />
+          <main className="flex-1 overflow-y-auto w-full">
+            {children}
+          </main>
         </div>
-      </AuthProvider>
-    </div>
+      </div>
+    </AuthProvider>
   )
 }

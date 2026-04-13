@@ -8,37 +8,37 @@ export const HeaderLp: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <header className="border-b border-border bg-background/80 backdrop-blur-lg sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Logo />
+    <header className="border-b border-white/5 bg-background/60 backdrop-blur-xl sticky top-0 z-50">
+      <div className="container mx-auto px-6 py-4 flex items-center justify-between h-20">
+        <Link href="/" className="hover:opacity-80 transition-opacity">
+            <Logo />
+        </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="#features" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+        <nav className="hidden lg:flex items-center gap-10">
+          <a href="/#features" className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-primary transition-all">
             Recursos
           </a>
-          <Link href="/docs" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+          <Link href="/docs" className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-primary transition-all">
             Documentação
           </Link>
-          <Link href="/docs#api-reference" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
-            API Reference
-          </Link>
-          <a href="#pricing" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+          <a href="/#pricing" className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-primary transition-all">
             Preços
           </a>
-          <div className="flex items-center gap-3 ml-4">
+          
+          <div className="flex items-center gap-6 ml-6 border-l border-white/5 pl-10">
             <Link href="/login">
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-foreground/70 hover:text-foreground hover:bg-white/5"
+                className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-foreground hover:bg-white/5 h-10 px-6"
               >
-                Login
+                Entrar
               </Button>
             </Link>
             <Link href="/signup">
-              <Button size="sm" className="bg-primary text-primary-foreground hover:opacity-90 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-                Começar Grátis
+              <Button size="sm" className="bg-primary text-white hover:opacity-90 shadow-lg shadow-primary/20 h-10 px-8 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] border border-primary/20">
+                Criar Conta
               </Button>
             </Link>
           </div>
@@ -46,58 +46,50 @@ export const HeaderLp: React.FC = () => {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-white p-2"
+          className="lg:hidden text-foreground/60 p-2 hover:bg-white/5 rounded-xl transition-colors"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-[#333333] border-t border-gray-600">
-          <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
+        <div className="lg:hidden bg-background/95 backdrop-blur-2xl border-b border-white/5 absolute top-full left-0 w-full animate-in fade-in slide-in-from-top-4 duration-300">
+          <nav className="container mx-auto px-6 py-8 flex flex-col gap-6">
             <a
-              href="#features"
-              className="text-white/80 hover:text-white transition-colors py-2"
+              href="/#features"
+              className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-primary transition-all py-3 border-b border-white/[0.02]"
               onClick={() => setIsMenuOpen(false)}
             >
               Recursos
             </a>
             <Link
               href="/docs"
-              className="text-white/80 hover:text-white transition-colors py-2"
+              className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-primary transition-all py-3 border-b border-white/[0.02]"
               onClick={() => setIsMenuOpen(false)}
             >
               Documentação
             </Link>
-            <Link
-              href="/docs#api-reference"
-              className="text-white/80 hover:text-white transition-colors py-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              API Reference
-            </Link>
             <a
-              href="#pricing"
-              className="text-white/80 hover:text-white transition-colors py-2"
+              href="/#pricing"
+              className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 hover:text-primary transition-all py-3 border-b border-white/[0.02]"
               onClick={() => setIsMenuOpen(false)}
             >
               Preços
             </a>
-            <div className="flex flex-col gap-3 pt-2">
+            <div className="flex flex-col gap-4 pt-6">
               <Link href="/login" className="w-full">
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="w-full border-white text-white hover:bg-white hover:text-[#333333] bg-transparent"
+                  className="w-full border-white/5 text-foreground/60 hover:bg-white/5 bg-transparent h-12 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em]"
                 >
-                  Login
+                  Fazer Login
                 </Button>
               </Link>
-              <Link href="/signup">
-                <Button size="sm" className="w-full bg-[#FFD700] text-black hover:bg-[#FFD700]/90">
-                  Começar Grátis
+              <Link href="/signup" className="w-full">
+                <Button className="w-full bg-primary text-white hover:opacity-90 h-12 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] shadow-lg shadow-primary/20">
+                  Começar Agora
                 </Button>
               </Link>
             </div>

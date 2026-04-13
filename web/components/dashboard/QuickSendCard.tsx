@@ -17,35 +17,6 @@ export function QuickSendCard() {
 
         setLoading(true)
         try {
-            // Assuming we need an API key or session ID. 
-            // But wait, sendWhatsAppMessage takes (apiKey, message).
-            // The dashboard is for the logged-in user.
-            // The backend endpoint /whatsapp (POST) uses @Req() req.apiKey.userId.
-            // But wait, the backend controller I saw earlier:
-            // @Post() sendMessage(@Body() body: SendMessageDto, @Req() req: Request & { apiKey: { userId: number } })
-            // It expects req.apiKey.
-            // But the dashboard is authenticated via JWT (Bearer token).
-            // The WhatsappController seems to be designed for API Key usage, not Dashboard usage?
-
-            // Let's check WhatsappController again.
-            // It uses @Req() req.apiKey.
-
-            // If I want to send from dashboard, I might need a different endpoint or update WhatsappController to support User auth (JWT).
-
-            // For now, I will try to use the new dashboard endpoint or existing one if compatible.
-            // Actually, I should probably create a method in DashboardController to send message or update WhatsappController.
-
-            // Let's look at WhatsappController again.
-            // It uses a custom guard or middleware that populates req.apiKey?
-            // In AppModule: .exclude({ path: '/whatsapp', method: RequestMethod.ALL }) from AuthMiddleware.
-            // So /whatsapp is NOT protected by AuthMiddleware (JWT). It likely uses ApiKeyMiddleware.
-
-            // So I cannot use /whatsapp endpoint from the dashboard easily without an API Key.
-            // I should fetch the user's API key first?
-            // Or I should expose a route in DashboardController to send message using JWT.
-
-            // Let's add sendMessage to DashboardController.
-
             await api.sendDashboardMessage(phone, message)
             toast.success('Mensagem enviada com sucesso!')
             setMessage('')
@@ -57,38 +28,41 @@ export function QuickSendCard() {
     }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Send className="h-5 w-5" />
-                    Teste Rápido de Envio
+        <Card className="bg-white/[0.02] border-white/5 hover:border-primary/30 transition-all duration-300">
+            <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-semibold text-foreground/50 uppercase tracking-wider flex items-center gap-2">
+                    <Send className="h-4 w-4 text-primary" />
+                    Envio Rápido
                 </CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
                     <div>
-                        <label className="text-sm font-medium mb-1 block">Número (com DDI)</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 mb-2 block">Número (com DDI)</label>
                         <Input
                             placeholder="5511999999999"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
+                            className="bg-white/[0.03] border-white/5 focus-visible:ring-primary/50 transition-all h-10 placeholder:text-foreground/20"
                         />
                     </div>
                     <div>
-                        <label className="text-sm font-medium mb-1 block">Mensagem</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 mb-2 block">Mensagem</label>
                         <Textarea
                             placeholder="Olá, teste de envio..."
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             rows={3}
+                            className="bg-white/[0.03] border-white/5 focus-visible:ring-primary/50 transition-all resize-none placeholder:text-foreground/20"
                         />
                     </div>
                     <Button
-                        className="w-full"
+                        className="w-full bg-primary text-white hover:opacity-90 shadow-lg shadow-primary/20 h-10 font-bold uppercase tracking-wider text-xs"
                         onClick={handleSend}
                         disabled={loading || !phone || !message}
                     >
                         {loading ? 'Enviando...' : 'Enviar Teste'}
+                        <Send className="w-3.5 h-3.5 ml-2" />
                     </Button>
                 </div>
             </CardContent>

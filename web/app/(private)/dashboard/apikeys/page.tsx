@@ -1,20 +1,19 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Sidebar } from '@/components/Sidebar'
 import { 
   Key, 
   Copy, 
   Trash2, 
   Plus,
   Edit,
-  Eye,
-  EyeOff,
+  Activity,
   Calendar,
-  Activity
+  CheckCircle2,
+  AlertCircle,
+  ShieldCheck
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
@@ -29,136 +28,161 @@ export default function ApiKeysPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
-    if (!accessToken) {
-      return
-    }
+    if (!accessToken) return
+    
     api.getApiKeys(accessToken)
-    .then(data => {
-      setApiKeys(data)
-    })
-    .catch(error => {
-      console.error('Error fetching API keys:', error)
-    })
+      .then(setApiKeys)
+      .catch(error => {
+        console.error('Error fetching API keys:', error)
+        toast.error('Erro ao carregar chaves de API')
+      })
   }, [accessToken])
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success('ID da chave copiado!')
+  }
+
   return (
-    <>
-      <Sidebar activeTab="apikeys" setActiveTab={() => {}} />
-      
-      <div className="flex-1 p-8">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">API Keys</h1>
-              <p className="text-gray-600">Manage your project API keys. Remember to keep your API keys safe to prevent unauthorized access.</p>
-            </div>
-            <Button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Create API Key
-            </Button>
+    <div className="p-8">
+      <div className="space-y-8 max-w-7xl mx-auto">
+        <div className="flex items-end justify-between">
+          <div>
+            <h1 className="text-3xl font-serif font-bold mb-2 tracking-tight">API Keys</h1>
+            <p className="text-foreground/40 text-sm font-medium uppercase tracking-widest leading-none">Chaves de Acesso e Segurança</p>
           </div>
+          <Button 
+            onClick={() => setIsModalOpen(true)} 
+            className="bg-primary text-white hover:opacity-90 font-bold uppercase tracking-widest text-xs h-11 px-6 shadow-lg shadow-primary/20"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Chave
+          </Button>
+        </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Key className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Total API Keys</p>
-                    <p className="text-2xl font-bold">{apiKeys.length}</p>
-                  </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-white/[0.02] border-white/5 hover:border-primary/30 transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+                  <Key className="h-6 w-6" />
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Activity className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">API Calls (24h)</p>
-                    <p className="text-2xl font-bold">{0 /** uso no dia */}</p>
-                  </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground/30 uppercase tracking-widest mb-1">Total de Chaves</p>
+                  <p className="text-3xl font-bold tracking-tight">{apiKeys.length}</p>
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Calendar className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Active Keys</p>
-                    <p className="text-2xl font-bold">{apiKeys.filter(key => key.status === 'ACTIVE').length}</p>
-                  </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white/[0.02] border-white/5 hover:border-primary/30 transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-500">
+                  <CheckCircle2 className="h-6 w-6" />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground/30 uppercase tracking-widest mb-1">Chaves Ativas</p>
+                  <p className="text-3xl font-bold tracking-tight">{apiKeys.filter(key => key.status === 'ACTIVE').length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* API Keys Table */}
-          <Card>
+          <Card className="bg-white/[0.02] border-white/5 hover:border-primary/30 transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-amber-500/10 rounded-2xl text-amber-500">
+                  <Activity className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground/30 uppercase tracking-widest mb-1">Uso nas últimas 24h</p>
+                  <p className="text-3xl font-bold tracking-tight">0</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* API Keys Table Placeholder if empty */}
+        {apiKeys.length === 0 ? (
+          <Card className="bg-white/[0.02] border-white/5 py-20">
+              <div className="flex flex-col items-center justify-center text-foreground/20 italic">
+                <ShieldCheck className="h-16 w-16 mb-4 opacity-10" />
+                <p className="text-lg font-medium">Nenhuma chave de API encontrada.</p>
+                <p className="text-sm not-italic mt-1">Crie uma chave para começar a integrar seus serviços.</p>
+                <Button variant="outline" onClick={() => setIsModalOpen(true)} className="text-primary border-primary/20 hover:bg-primary/10 mt-6 font-bold uppercase tracking-widest text-xs">
+                  Criar minha primeira chave
+                </Button>
+              </div>
+          </Card>
+        ) : (
+          <Card className="bg-white/[0.02] border-white/5 overflow-hidden">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="text-left p-4 font-medium text-gray-600">NAME</th>
-                      <th className="text-left p-4 font-medium text-gray-600">SECRET KEY</th>
-                      <th className="text-left p-4 font-medium text-gray-600">CREATED</th>
-                      <th className="text-left p-4 font-medium text-gray-600">LAST USED</th>
-                      <th className="text-left p-4 font-medium text-gray-600">USAGE (24HRS)</th>
-                      <th className="text-right p-4 font-medium text-gray-600">ACTIONS</th>
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-white/[0.02] border-b border-white/5">
+                      <th className="p-4 text-[10px] font-bold text-foreground/30 uppercase tracking-widest">Nome da Chave</th>
+                      <th className="p-4 text-[10px] font-bold text-foreground/30 uppercase tracking-widest">Secret Key</th>
+                      <th className="p-4 text-[10px] font-bold text-foreground/30 uppercase tracking-widest">Criada em</th>
+                      <th className="p-4 text-[10px] font-bold text-foreground/30 uppercase tracking-widest">Status</th>
+                      <th className="p-4 text-[10px] font-bold text-foreground/30 uppercase tracking-widest text-right">Ações</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/5 text-sm">
                     {apiKeys.map((apiKey) => (
-                      <tr key={apiKey.id} className="border-b hover:bg-gray-50">
+                      <tr key={apiKey.id} className="hover:bg-white/[0.02] transition-colors group">
                         <td className="p-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="font-medium">{apiKey.name}</span>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-1.5 h-1.5 rounded-full ${apiKey.status === 'ACTIVE' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-foreground/20'}`} />
+                            <span className="font-bold tracking-tight">{apiKey.name}</span>
                           </div>
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
-                            <code className="bg-gray-100 px-3 py-1 rounded text-sm font-mono">
-                              {'*'.repeat(20)}
+                            <code className="bg-white/5 px-3 py-1.5 rounded-lg text-xs font-mono text-foreground/40 tracking-wider">
+                              {'•'.repeat(24)}
                             </code>
                             <Button
                               variant="ghost"
-                              size="sm"
-                              onClick={() => {}}
-                              className="h-8 w-8 p-0"
+                              size="icon"
+                              onClick={() => copyToClipboard(apiKey.id.toString())}
+                              className="h-8 w-8 text-foreground/30 hover:text-primary hover:bg-primary/10 transition-all"
                             >
-                              <Copy className="h-4 w-4" />
+                              <Copy className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </td>
-                        <td className="p-4 text-gray-600">{format(new Date(apiKey.createdAt), 'dd-MM-yyyy HH:mm:ss')}</td>
-                        <td className="p-4 text-gray-600">{format(new Date(apiKey.createdAt), 'dd-MM-yyyy HH:mm:ss')}</td>
+                        <td className="p-4 text-foreground/50 font-medium">
+                          <div className="flex items-center gap-2 text-xs">
+                            <Calendar className="w-3.5 h-3.5 opacity-30" />
+                            {format(new Date(apiKey.createdAt), 'dd MMM, yyyy')}
+                          </div>
+                        </td>
                         <td className="p-4">
-                          <span className="text-sm font-medium">{0} API Calls</span>
+                          <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest ${
+                            apiKey.status === 'ACTIVE' 
+                              ? 'bg-emerald-500/10 text-emerald-500' 
+                              : 'bg-rose-500/10 text-rose-500'
+                          }`}>
+                            {apiKey.status === 'ACTIVE' ? 'Ativa' : 'Revogada'}
+                          </span>
                         </td>
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-2">
                             <Button
                               variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900"
+                              size="icon"
+                              className="h-9 w-9 text-foreground/30 hover:text-primary hover:bg-primary/10 transition-all rounded-xl"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
-                              size="sm"
-                              onClick={() => apiKey.id}
-                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                              size="icon"
+                              className="h-9 w-9 text-foreground/30 hover:text-rose-500 hover:bg-rose-500/10 transition-all rounded-xl"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -171,19 +195,19 @@ export default function ApiKeysPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        )}
       </div>
-      
+
       <CreateApiKeyModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => {
           api.getApiKeys(accessToken)
-            .then(data => setApiKeys(data))
+            .then(setApiKeys)
             .catch(error => console.error('Error fetching API keys:', error))
         }}
         accessToken={accessToken}
       />
-    </>
+    </div>
   )
 }

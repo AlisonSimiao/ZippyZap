@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Checkbox, type CheckedState } from '@/components/ui/checkbox'
 import { Loader2, Webhook } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -53,6 +53,16 @@ export function CreateWebhookModal({ isOpen, onClose, onSuccess, accessToken }: 
                 ? prev.filter(e => e !== eventSlug)
                 : [...prev, eventSlug]
         )
+    }
+
+    const handleEventCheckedChange = (eventSlug: string, checked: CheckedState) => {
+        setSelectedEvents(prev => {
+            if (checked === true) {
+                return prev.includes(eventSlug) ? prev : [...prev, eventSlug]
+            }
+
+            return prev.filter(e => e !== eventSlug)
+        })
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -142,7 +152,7 @@ export function CreateWebhookModal({ isOpen, onClose, onSuccess, accessToken }: 
                                         <Checkbox
                                             id={event.slug}
                                             checked={selectedEvents.includes(event.slug)}
-                                            onCheckedChange={() => handleEventToggle(event.slug)}
+                                            onCheckedChange={(checked) => handleEventCheckedChange(event.slug, checked)}
                                         />
                                         <div className="flex-1">
                                             <label
@@ -169,7 +179,7 @@ export function CreateWebhookModal({ isOpen, onClose, onSuccess, accessToken }: 
                         <Switch
                             id="isActive"
                             checked={isActive}
-                            onCheckedChange={setIsActive}
+                            onCheckedChange={(checked) => setIsActive(Boolean(checked))}
                         />
                     </div>
 

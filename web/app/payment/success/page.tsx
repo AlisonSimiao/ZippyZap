@@ -2,9 +2,9 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Loader2, ArrowRight } from "lucide-react"
+import { CheckCircle, Loader2, ArrowRight, ShieldCheck, Zap, Star, Sparkles, Home } from "lucide-react"
 import { api } from "@/lib/api"
 import Link from "next/link"
 
@@ -38,7 +38,6 @@ function PaymentSuccessContent() {
                     return
                 }
 
-                // Fazer polling do status do pagamento com retry logic
                 const checkStatus = async () => {
                     try {
                         const data = await api.getPaymentStatus(accessToken, paymentId)
@@ -50,15 +49,14 @@ function PaymentSuccessContent() {
                         } else if (retryCount < maxRetries) {
                             retryCount++
                         } else {
-                            // Após 50 segundos sem resposta, mostrar erro
-                            setError("Não foi possível confirmar o status do pagamento. Por favor, verifique seu email.")
+                            setError("Confirmação em andamento. Verifique seu status no dashboard em instantes.")
                             setLoading(false)
                             clearInterval(interval)
                         }
                     } catch (err) {
                         console.error("Erro ao verificar status:", err)
                         if (retryCount >= maxRetries) {
-                            setError("Erro ao verificar status do pagamento")
+                            setError("Não foi possível confirmar o status agora. Verifique seu e-mail.")
                             setLoading(false)
                             clearInterval(interval)
                         }
@@ -66,14 +64,11 @@ function PaymentSuccessContent() {
                     }
                 }
 
-                // Primeira verificação após 2 segundos
                 setTimeout(checkStatus, 2000)
-
-                // Polling a cada 5 segundos
                 interval = setInterval(checkStatus, 5000)
 
             } catch (err) {
-                setError("Erro ao verificar pagamento")
+                setError("Ocorreu um erro inesperado")
                 setLoading(false)
             }
         }
@@ -87,94 +82,118 @@ function PaymentSuccessContent() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center p-4">
-                <Card className="max-w-md w-full">
-                    <CardContent className="pt-6 text-center">
-                        <Loader2 className="w-16 h-16 animate-spin text-[#FFD700] mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-[#333333] mb-2">
-                            Verificando seu pagamento...
-                        </h3>
-                        <p className="text-[#333333]/70">
-                            Aguarde enquanto confirmamos sua transação
-                        </p>
-                    </CardContent>
-                </Card>
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+                <div className="relative mb-8">
+                    <Loader2 className="w-16 h-16 animate-spin text-primary" />
+                    <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-150 animate-pulse"></div>
+                </div>
+                <h3 className="text-2xl font-serif font-black tracking-tight mb-2">Processando Upgrade</h3>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30 animate-pulse">
+                    Aguarde enquanto confirmamos sua transação com segurança
+                </p>
             </div>
         )
     }
 
     if (error) {
         return (
-            <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center p-4">
-                <Card className="max-w-md w-full border-red-200">
+            <div className="min-h-screen bg-background flex items-center justify-center p-6">
+                <Card className="max-w-md w-full bg-white/[0.02] border-rose-500/20 shadow-2xl">
                     <CardHeader className="text-center">
-                        <CardTitle className="text-red-600">Erro</CardTitle>
-                        <CardDescription>{error}</CardDescription>
+                        <div className="w-20 h-20 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-rose-500/20">
+                            <Zap className="h-10 w-10 text-rose-500" />
+                        </div>
+                        <CardTitle className="text-2xl font-bold tracking-tight text-rose-500">Atenção</CardTitle>
+                        <CardDescription className="text-foreground/40 font-medium">{error}</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <Link href="/#pricing">
-                            <Button variant="outline" className="w-full">
-                                Voltar para Planos
+                    <CardFooter>
+                        <Link href="/dashboard" className="w-full">
+                            <Button className="w-full bg-primary text-white font-bold h-12 rounded-2xl">
+                                Ir para o Dashboard
                             </Button>
                         </Link>
-                    </CardContent>
+                    </CardFooter>
                 </Card>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center p-4">
-            <Card className="max-w-md w-full border-[#25D366]">
-                <CardHeader className="text-center pb-6">
-                    <div className="w-20 h-20 bg-[#25D366]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="w-12 h-12 text-[#25D366]" />
-                    </div>
-                    <CardTitle className="text-3xl text-[#333333] mb-2">
-                        Pagamento Aprovado!
-                    </CardTitle>
-                    <CardDescription className="text-lg">
-                        Sua assinatura foi ativada com sucesso
-                    </CardDescription>
-                </CardHeader>
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            {/* Background Decor */}
+            <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full -z-10 animate-pulse" />
+            <div className="absolute bottom-0 left-0 w-[50%] h-[50%] bg-primary/5 blur-[120px] rounded-full -z-10 animate-pulse delay-700" />
 
-                <CardContent className="space-y-6">
-                    <div className="bg-[#F5F5F5] rounded-lg p-6 space-y-3">
-                        <div className="flex items-center gap-3">
-                            <CheckCircle className="w-5 h-5 text-[#25D366]" />
-                            <span className="text-[#333333]">Pagamento confirmado</span>
+            <div className="w-full max-w-lg relative z-10">
+                <Card className="bg-white/[0.02] border-emerald-500/20 shadow-2xl shadow-emerald-500/5 overflow-hidden backdrop-blur-xl rounded-[2.5rem]">
+                    <CardHeader className="text-center pt-12 pb-8">
+                        <div className="relative w-24 h-24 mx-auto mb-8">
+                            <div className="absolute inset-0 bg-emerald-500 animate-ping opacity-20 rounded-full"></div>
+                            <div className="relative w-24 h-24 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+                                <CheckCircle className="w-12 h-12 text-emerald-500" />
+                            </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <CheckCircle className="w-5 h-5 text-[#25D366]" />
-                            <span className="text-[#333333]">Assinatura ativada</span>
+                        <div className="space-y-2">
+                            <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest mb-2">
+                                Transação Concluída
+                            </Badge>
+                            <CardTitle className="text-4xl font-serif font-black tracking-tight text-foreground">
+                                Pagamento Aprovado!
+                            </CardTitle>
+                            <CardDescription className="text-sm font-medium text-foreground/40">
+                                Sua assinatura premium foi ativada com sucesso.
+                            </CardDescription>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <CheckCircle className="w-5 h-5 text-[#25D366]" />
-                            <span className="text-[#333333]">API pronta para uso</span>
-                        </div>
-                    </div>
+                    </CardHeader>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-sm text-blue-800">
-                            <strong>Próximos passos:</strong> Acesse seu dashboard para obter sua API key e começar a enviar mensagens.
-                        </p>
-                    </div>
+                    <CardContent className="px-10 pb-10 space-y-8">
+                        <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-8 space-y-4">
+                            <div className="flex items-center gap-4 group">
+                                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 transition-transform group-hover:scale-110">
+                                    <Star className="w-4 h-4 fill-emerald-500/20" />
+                                </div>
+                                <span className="text-xs font-bold uppercase tracking-widest text-foreground/60 transition-colors group-hover:text-foreground">Benefícios Pro liberados</span>
+                            </div>
+                            <div className="flex items-center gap-4 group">
+                                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 transition-transform group-hover:scale-110">
+                                    <Zap className="w-4 h-4 fill-emerald-500/20" />
+                                </div>
+                                <span className="text-xs font-bold uppercase tracking-widest text-foreground/60 transition-colors group-hover:text-foreground">Limites de envio ampliados</span>
+                            </div>
+                            <div className="flex items-center gap-4 group">
+                                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 transition-transform group-hover:scale-110">
+                                    <ShieldCheck className="w-4 h-4 fill-emerald-500/20" />
+                                </div>
+                                <span className="text-xs font-bold uppercase tracking-widest text-foreground/60 transition-colors group-hover:text-foreground">Suporte priorizado ativo</span>
+                            </div>
+                        </div>
 
-                    <div className="space-y-3">
-                        <Link href="/dashboard">
-                            <Button className="w-full bg-[#FFD700] text-black hover:bg-[#FFD700]/90">
-                                Ir para Dashboard
-                                <ArrowRight className="w-4 h-4 ml-2" />
-                            </Button>
-                        </Link>
-                        <Link href="/docs">
-                            <Button variant="outline" className="w-full border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white">
-                                Ver Documentação
-                            </Button>
-                        </Link>
-                    </div>
-                </CardContent>
-            </Card>
+                        <div className="space-y-4">
+                            <Link href="/dashboard" className="block">
+                                <Button className="w-full bg-primary text-white hover:opacity-90 font-bold uppercase tracking-widest text-xs h-14 rounded-2xl shadow-xl shadow-primary/20 transition-all group">
+                                    Acessar Plataforma
+                                    <ArrowRight className="w-4 h-4 ml-3 transition-transform group-hover:translate-x-1" />
+                                </Button>
+                            </Link>
+                            <Link href="/" className="block">
+                                <Button variant="ghost" className="w-full text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/20 hover:text-foreground/40 hover:bg-white/5 h-12 rounded-2xl transition-all">
+                                    <Home className="w-3.5 h-3.5 mr-2" />
+                                    Voltar à Home
+                                </Button>
+                            </Link>
+                        </div>
+                    </CardContent>
+                    
+                    <CardFooter className="bg-primary/5 border-t border-primary/10 p-6">
+                        <div className="flex items-center gap-3 w-full justify-center">
+                            <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-primary/70">
+                                Prepare-se para decolar sua automação
+                            </p>
+                        </div>
+                    </CardFooter>
+                </Card>
+            </div>
         </div>
     )
 }
@@ -182,15 +201,11 @@ function PaymentSuccessContent() {
 export default function PaymentSuccessPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center p-4">
-                <Card className="max-w-md w-full">
-                    <CardContent className="pt-6 text-center">
-                        <Loader2 className="w-16 h-16 animate-spin text-[#FFD700] mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-[#333333] mb-2">
-                            Carregando...
-                        </h3>
-                    </CardContent>
-                </Card>
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+                <div className="relative">
+                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                    <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 animate-pulse"></div>
+                </div>
             </div>
         }>
             <PaymentSuccessContent />

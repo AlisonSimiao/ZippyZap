@@ -28,6 +28,7 @@ import {
 import { HEADERS } from "@/components/Header"
 import { CodeBlock } from "@/components/ui/code-block"
 import Link from "next/link"
+import Logo from "@/components/logo"
 import ApiReference from "../components/ApiReference"
 
 export default function DocsPage() {
@@ -202,7 +203,7 @@ send_whatsapp_message()`,
     }
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
             {/* Structured Data */}
             <script
                 type="application/ld+json"
@@ -220,17 +221,23 @@ send_whatsapp_message()`,
             <HEADERS.HeaderLp />
 
             {/* Hero Section */}
-            <section className="py-20 px-4 bg-gradient-to-br from-[#25D366]/10 via-white to-[#FFD700]/10">
-                <div className="container mx-auto max-w-6xl">
+            <section className="relative py-24 px-4 overflow-hidden border-b border-white/5">
+                {/* Background glow effects */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-6xl pointer-events-none">
+                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full animate-pulse" />
+                    <div className="absolute bottom-[10%] right-[-10%] w-[30%] h-[30%] bg-primary/10 blur-[100px] rounded-full" />
+                </div>
+                
+                <div className="container mx-auto max-w-6xl relative">
                     <div className="text-center">
-                        <Badge variant="secondary" className="mb-6 bg-[#25D366]/10 text-[#25D366] border-[#25D366]/20">
-                            <BookOpen className="w-4 h-4 mr-2" />
+                        <Badge variant="secondary" className="mb-6 bg-primary/15 text-primary border-primary/20 px-4 py-1.5 backdrop-blur-sm">
+                            <BookOpen className="w-3.5 h-3.5 mr-2" />
                             Documentação Completa
                         </Badge>
-                        <h1 className="text-5xl md:text-6xl font-serif font-bold text-[#333333] mb-6 leading-tight">
-                            Documentação <span className="text-[#0066FF]">ZippyZap</span>
+                        <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-[1.1] tracking-tight">
+                            Documentação <span className="text-primary">ZippyZap</span>
                         </h1>
-                        <p className="text-xl text-[#333333]/70 mb-8 max-w-3xl mx-auto">
+                        <p className="text-xl text-foreground/60 mb-10 leading-relaxed max-w-3xl mx-auto">
                             Tudo que você precisa saber para integrar WhatsApp em suas aplicações de forma profissional,
                             segura e escalável.
                         </p>
@@ -239,7 +246,7 @@ send_whatsapp_message()`,
             </section>
 
             {/* Quick Navigation */}
-            <section className="py-12 px-4 bg-white border-b border-gray-200">
+            <section className="py-12 px-4 bg-background border-b border-white/5 relative">
                 <div className="container mx-auto max-w-6xl">
                     <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
                         {[
@@ -253,10 +260,10 @@ send_whatsapp_message()`,
                             <a
                                 key={idx}
                                 href={item.href}
-                                className="flex flex-col items-center gap-2 p-4 rounded-lg hover:bg-[#F5F5F5] transition-colors"
+                                className="flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-white/5 transition-all group"
                             >
-                                <item.icon className="w-6 h-6 text-[#25D366]" />
-                                <span className="text-sm font-medium text-[#333333]">{item.label}</span>
+                                <item.icon className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 group-hover:text-primary transition-colors">{item.label}</span>
                             </a>
                         ))}
                     </div>
@@ -269,51 +276,51 @@ send_whatsapp_message()`,
 
                     {/* Introdução */}
                     <div id="intro" className="mb-20">
-                        <h2 className="text-4xl font-serif font-bold text-[#333333] mb-8 flex items-center gap-3">
-                            <BookOpen className="w-10 h-10 text-[#25D366]" />
+                        <h2 className="text-4xl font-serif font-bold text-foreground mb-8 flex items-center gap-3">
+                            <BookOpen className="w-10 h-10 text-primary" />
                             Sobre o ZippyZap
                         </h2>
 
-                        <div className="prose prose-lg max-w-none">
-                            <p className="text-lg text-[#333333]/80 mb-6 leading-relaxed">
+                        <div className="prose prose-invert prose-lg max-w-none">
+                            <p className="text-lg text-foreground/80 mb-6 leading-relaxed">
                                 O <strong>ZippyZap</strong> é uma plataforma completa de API WhatsApp Business que permite
                                 integrar funcionalidades de mensageria WhatsApp em suas aplicações, sistemas e processos de
                                 negócio de forma simples, rápida e confiável.
                             </p>
 
                             <div className="grid md:grid-cols-3 gap-6 my-8">
-                                <Card className="border-[#25D366]/20">
+                                <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                     <CardHeader>
-                                        <Zap className="w-8 h-8 text-[#FFD700] mb-2" />
+                                        <Zap className="w-8 h-8 text-primary mb-2" />
                                         <CardTitle className="text-xl">Rápido</CardTitle>
-                                        <CardDescription>
+                                        <CardDescription className="text-foreground/50">
                                             Integração em minutos com nossa API RESTful intuitiva
                                         </CardDescription>
                                     </CardHeader>
                                 </Card>
 
-                                <Card className="border-[#25D366]/20">
+                                <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                     <CardHeader>
-                                        <Shield className="w-8 h-8 text-[#0066FF] mb-2" />
+                                        <Shield className="w-8 h-8 text-primary mb-2" />
                                         <CardTitle className="text-xl">Seguro</CardTitle>
-                                        <CardDescription>
+                                        <CardDescription className="text-foreground/50">
                                             Autenticação robusta, rate limiting e proteção contra abusos
                                         </CardDescription>
                                     </CardHeader>
                                 </Card>
 
-                                <Card className="border-[#25D366]/20">
+                                <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                     <CardHeader>
-                                        <Activity className="w-8 h-8 text-[#25D366] mb-2" />
+                                        <Activity className="w-8 h-8 text-primary mb-2" />
                                         <CardTitle className="text-xl">Escalável</CardTitle>
-                                        <CardDescription>
+                                        <CardDescription className="text-foreground/50">
                                             Infraestrutura preparada para milhares de mensagens por minuto
                                         </CardDescription>
                                     </CardHeader>
                                 </Card>
                             </div>
 
-                            <h3 className="text-2xl font-bold text-[#333333] mt-12 mb-4">Principais Recursos</h3>
+                            <h3 className="text-2xl font-bold text-foreground mt-12 mb-4">Principais Recursos</h3>
                             <div className="grid md:grid-cols-2 gap-4">
                                 {[
                                     "Envio de mensagens de texto via API REST",
@@ -326,8 +333,8 @@ send_whatsapp_message()`,
                                     "Documentação completa e exemplos de código",
                                 ].map((feature, idx) => (
                                     <div key={idx} className="flex items-start gap-3">
-                                        <CheckCircle className="w-5 h-5 text-[#25D366] mt-1 flex-shrink-0" />
-                                        <span className="text-[#333333]/80">{feature}</span>
+                                        <CheckCircle className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                                        <span className="text-foreground/80">{feature}</span>
                                     </div>
                                 ))}
                             </div>
@@ -336,126 +343,126 @@ send_whatsapp_message()`,
 
                     {/* Casos de Uso */}
                     <div id="use-cases" className="mb-20">
-                        <h2 className="text-4xl font-serif font-bold text-[#333333] mb-8 flex items-center gap-3">
-                            <Zap className="w-10 h-10 text-[#FFD700]" />
+                        <h2 className="text-4xl font-serif font-bold text-foreground mb-8 flex items-center gap-3">
+                            <Zap className="w-10 h-10 text-primary" />
                             Casos de Uso
                         </h2>
 
                         <div className="grid md:grid-cols-2 gap-6">
-                            <Card className="border-gray-200 hover:shadow-lg transition-shadow">
+                            <Card className="border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all backdrop-blur-sm group">
                                 <CardHeader>
-                                    <ShoppingCart className="w-10 h-10 text-[#25D366] mb-3" />
+                                    <ShoppingCart className="w-10 h-10 text-primary mb-3 transition-transform group-hover:scale-110" />
                                     <CardTitle className="text-2xl">E-commerce</CardTitle>
-                                    <CardDescription className="text-base">
+                                    <CardDescription className="text-base text-foreground/50">
                                         Automatize notificações de pedidos, atualizações de entrega e suporte ao cliente
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <ul className="space-y-2 text-sm text-[#333333]/70">
+                                    <ul className="space-y-2 text-sm text-foreground/70">
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Confirmação de pedidos em tempo real
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Rastreamento de entregas
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Recuperação de carrinho abandonado
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Promoções e ofertas personalizadas
                                         </li>
                                     </ul>
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-gray-200 hover:shadow-lg transition-shadow">
+                            <Card className="border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all backdrop-blur-sm group">
                                 <CardHeader>
-                                    <Bell className="w-10 h-10 text-[#FFD700] mb-3" />
+                                    <Bell className="w-10 h-10 text-primary mb-3 transition-transform group-hover:scale-110" />
                                     <CardTitle className="text-2xl">Notificações</CardTitle>
-                                    <CardDescription className="text-base">
+                                    <CardDescription className="text-base text-foreground/50">
                                         Envie alertas, lembretes e notificações importantes para seus usuários
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <ul className="space-y-2 text-sm text-[#333333]/70">
+                                    <ul className="space-y-2 text-sm text-foreground/70">
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#FFD700]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Lembretes de agendamentos
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#FFD700]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Alertas de segurança (2FA)
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#FFD700]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Atualizações de sistema
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#FFD700]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Confirmações de transações
                                         </li>
                                     </ul>
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-gray-200 hover:shadow-lg transition-shadow">
+                            <Card className="border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all backdrop-blur-sm group">
                                 <CardHeader>
-                                    <Users className="w-10 h-10 text-[#0066FF] mb-3" />
+                                    <Users className="w-10 h-10 text-primary mb-3 transition-transform group-hover:scale-110" />
                                     <CardTitle className="text-2xl">Marketing</CardTitle>
-                                    <CardDescription className="text-base">
+                                    <CardDescription className="text-base text-foreground/50">
                                         Campanhas de marketing direto com alto engajamento
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <ul className="space-y-2 text-sm text-[#333333]/70">
+                                    <ul className="space-y-2 text-sm text-foreground/70">
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Campanhas promocionais segmentadas
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Newsletters e atualizações
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Pesquisas de satisfação
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Programas de fidelidade
                                         </li>
                                     </ul>
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-gray-200 hover:shadow-lg transition-shadow">
+                            <Card className="border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all backdrop-blur-sm group">
                                 <CardHeader>
-                                    <MessageSquare className="w-10 h-10 text-[#25D366] mb-3" />
+                                    <MessageSquare className="w-10 h-10 text-primary mb-3 transition-transform group-hover:scale-110" />
                                     <CardTitle className="text-2xl">Atendimento</CardTitle>
-                                    <CardDescription className="text-base">
+                                    <CardDescription className="text-base text-foreground/50">
                                         Suporte ao cliente automatizado e eficiente
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <ul className="space-y-2 text-sm text-[#333333]/70">
+                                    <ul className="space-y-2 text-sm text-foreground/70">
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Chatbots inteligentes
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Respostas automáticas
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             Tickets de suporte
                                         </li>
                                         <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
+                                            <CheckCircle className="w-4 h-4 text-primary" />
                                             FAQ automatizado
                                         </li>
                                     </ul>
@@ -466,103 +473,107 @@ send_whatsapp_message()`,
 
                     {/* Como Usar */}
                     <div id="how-to-use" className="mb-20">
-                        <h2 className="text-4xl font-serif font-bold text-[#333333] mb-8 flex items-center gap-3">
-                            <Code className="w-10 h-10 text-[#0066FF]" />
+                        <h2 className="text-4xl font-serif font-bold text-foreground mb-8 flex items-center gap-3">
+                            <Code className="w-10 h-10 text-primary" />
                             Como Utilizar
                         </h2>
 
                         <div className="space-y-8">
                             {/* Passo 1 */}
-                            <Card className="border-[#25D366]/20">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-[#FFD700] rounded-full flex items-center justify-center text-black font-bold text-xl">
+                                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xl">
                                             1
                                         </div>
                                         <div>
                                             <CardTitle className="text-2xl">Crie sua Conta</CardTitle>
-                                            <CardDescription className="text-base">
+                                            <CardDescription className="text-base text-foreground/50">
                                                 Registre-se gratuitamente e receba 1000 mensagens para testar
                                             </CardDescription>
                                         </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-[#333333]/70 mb-4">
+                                    <p className="text-foreground/70 mb-6">
                                         Acesse a plataforma e crie sua conta em menos de 2 minutos. Você receberá acesso
                                         imediato ao dashboard e poderá começar a testar a API.
                                     </p>
-                                    <Button className="bg-[#FFD700] text-black hover:bg-[#FFD700]/90">
-                                        Criar Conta Grátis
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
+                                    <Link href="/signup">
+                                        <Button className="bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20 h-12 px-8 rounded-full text-[12px] font-bold uppercase tracking-[0.2em]">
+                                            Criar Conta Grátis
+                                            <ArrowRight className="w-4 h-4 ml-2" />
+                                        </Button>
+                                    </Link>
                                 </CardContent>
                             </Card>
 
                             {/* Passo 2 */}
-                            <Card className="border-[#25D366]/20">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-[#FFD700] rounded-full flex items-center justify-center text-black font-bold text-xl">
+                                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xl">
                                             2
                                         </div>
                                         <div>
                                             <CardTitle className="text-2xl">Gere sua API Key</CardTitle>
-                                            <CardDescription className="text-base">
+                                            <CardDescription className="text-base text-foreground/50">
                                                 Crie uma chave de API para autenticar suas requisições
                                             </CardDescription>
                                         </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-[#333333]/70 mb-4">
+                                    <p className="text-foreground/70 mb-6">
                                         No dashboard, acesse a seção "API Keys" e gere uma nova chave. Guarde-a em local seguro,
                                         pois ela será necessária para todas as chamadas à API.
                                     </p>
-                                    <div className="space-y-2">
-                                        <span className="text-sm font-medium text-[#333333]">Exemplo de API Key:</span>
-                                        <CodeBlock code="zapi_live_abc123def456ghi789" language="bash" />
+                                    <div className="space-y-3">
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">Exemplo de API Key:</span>
+                                        <div className="p-4 bg-black/50 border border-white/5 rounded-xl font-mono text-primary text-sm">
+                                            zapi_live_abc123def456ghi789
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
 
                             {/* Passo 3 */}
-                            <Card className="border-[#25D366]/20">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-[#FFD700] rounded-full flex items-center justify-center text-black font-bold text-xl">
+                                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xl">
                                             3
                                         </div>
                                         <div>
                                             <CardTitle className="text-2xl">Configure o WhatsApp</CardTitle>
-                                            <CardDescription className="text-base">
+                                            <CardDescription className="text-base text-foreground/50">
                                                 Conecte sua conta WhatsApp escaneando o QR Code
                                             </CardDescription>
                                         </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-[#333333]/70 mb-4">
+                                    <p className="text-foreground/70 mb-6">
                                         Acesse a seção "WhatsApp" no dashboard e escaneie o QR Code com seu WhatsApp.
                                         Sua sessão ficará ativa e pronta para enviar mensagens.
                                     </p>
-                                    <div className="flex items-center gap-2 text-sm text-[#333333]/60">
-                                        <AlertTriangle className="w-4 h-4 text-[#FFD700]" />
+                                    <div className="flex items-center gap-3 p-4 bg-primary/10 border border-primary/20 rounded-xl text-sm text-primary/80">
+                                        <AlertTriangle className="w-4 h-4" />
                                         <span>Mantenha seu WhatsApp conectado à internet para receber mensagens</span>
                                     </div>
                                 </CardContent>
                             </Card>
 
                             {/* Passo 4 */}
-                            <Card className="border-[#25D366]/20">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-[#FFD700] rounded-full flex items-center justify-center text-black font-bold text-xl">
+                                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xl">
                                             4
                                         </div>
                                         <div>
                                             <CardTitle className="text-2xl">Envie sua Primeira Mensagem</CardTitle>
-                                            <CardDescription className="text-base">
+                                            <CardDescription className="text-base text-foreground/50">
                                                 Faça sua primeira chamada à API e envie uma mensagem
                                             </CardDescription>
                                         </div>
@@ -570,22 +581,22 @@ send_whatsapp_message()`,
                                 </CardHeader>
                                 <CardContent>
                                     <Tabs defaultValue="curl" className="w-full">
-                                        <TabsList className="grid w-full grid-cols-3 mb-4">
-                                            <TabsTrigger value="curl">cURL</TabsTrigger>
-                                            <TabsTrigger value="node">Node.js</TabsTrigger>
-                                            <TabsTrigger value="python">Python</TabsTrigger>
+                                        <TabsList className="bg-white/5 p-1 border border-white/5 rounded-xl mb-6">
+                                            <TabsTrigger value="curl" className="text-[10px] font-bold uppercase tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">cURL</TabsTrigger>
+                                            <TabsTrigger value="node" className="text-[10px] font-bold uppercase tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Node.js</TabsTrigger>
+                                            <TabsTrigger value="python" className="text-[10px] font-bold uppercase tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Python</TabsTrigger>
                                         </TabsList>
 
                                         <TabsContent value="curl">
-                                            <CodeBlock code={codeExamples.sendMessage} language="bash" />
+                                            <CodeBlock code={codeExamples.sendMessage} language="bash" className="bg-black/50 border-white/5 rounded-xl" />
                                         </TabsContent>
 
                                         <TabsContent value="node">
-                                            <CodeBlock code={codeExamples.nodeExample} language="javascript" />
+                                            <CodeBlock code={codeExamples.nodeExample} language="javascript" className="bg-black/50 border-white/5 rounded-xl" />
                                         </TabsContent>
 
                                         <TabsContent value="python">
-                                            <CodeBlock code={codeExamples.pythonExample} language="python" />
+                                            <CodeBlock code={codeExamples.pythonExample} language="python" className="bg-black/50 border-white/5 rounded-xl" />
                                         </TabsContent>
                                     </Tabs>
                                 </CardContent>
@@ -595,51 +606,51 @@ send_whatsapp_message()`,
 
                     {/* Webhooks */}
                     <div id="webhooks" className="mb-20">
-                        <h2 className="text-4xl font-serif font-bold text-[#333333] mb-8 flex items-center gap-3">
-                            <Webhook className="w-10 h-10 text-[#25D366]" />
+                        <h2 className="text-4xl font-serif font-bold text-foreground mb-8 flex items-center gap-3">
+                            <Webhook className="w-10 h-10 text-primary" />
                             Webhooks
                         </h2>
 
                         <div className="space-y-6">
-                            <Card className="border-[#25D366]/20">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
                                     <CardTitle className="text-2xl">Como Funcionam os Webhooks</CardTitle>
-                                    <CardDescription className="text-base">
+                                    <CardDescription className="text-base text-foreground/50">
                                         Receba notificações em tempo real sobre eventos do WhatsApp
                                     </CardDescription>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <p className="text-[#333333]/80">
+                                <CardContent className="space-y-6">
+                                    <p className="text-foreground/80">
                                         Webhooks são chamadas HTTP POST que o ZippyZap faz para sua aplicação quando eventos
                                         importantes acontecem, como recebimento de mensagens, confirmações de entrega, leitura, etc.
                                     </p>
 
-                                    <div className="bg-[#F5F5F5] p-6 rounded-lg border border-gray-200">
-                                        <h4 className="font-semibold text-[#333333] mb-4 flex items-center gap-2">
-                                            <Server className="w-5 h-5 text-[#25D366]" />
+                                    <div className="bg-white/5 p-6 rounded-xl border border-white/5">
+                                        <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                                            <Server className="w-5 h-5 text-primary" />
                                             Configuração do Webhook
                                         </h4>
-                                        <ol className="space-y-3 text-sm text-[#333333]/80">
+                                        <ol className="space-y-4 text-sm text-foreground/80">
                                             <li className="flex items-start gap-3">
-                                                <span className="w-6 h-6 bg-[#FFD700] rounded-full flex items-center justify-center text-black font-bold text-xs flex-shrink-0">
+                                                <span className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs flex-shrink-0">
                                                     1
                                                 </span>
                                                 <span>Acesse o dashboard e vá para "Configurações → Webhooks"</span>
                                             </li>
                                             <li className="flex items-start gap-3">
-                                                <span className="w-6 h-6 bg-[#FFD700] rounded-full flex items-center justify-center text-black font-bold text-xs flex-shrink-0">
+                                                <span className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs flex-shrink-0">
                                                     2
                                                 </span>
                                                 <span>Insira a URL do seu endpoint (ex: https://seusite.com/webhook)</span>
                                             </li>
                                             <li className="flex items-start gap-3">
-                                                <span className="w-6 h-6 bg-[#FFD700] rounded-full flex items-center justify-center text-black font-bold text-xs flex-shrink-0">
+                                                <span className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs flex-shrink-0">
                                                     3
                                                 </span>
                                                 <span>Selecione os eventos que deseja receber</span>
                                             </li>
                                             <li className="flex items-start gap-3">
-                                                <span className="w-6 h-6 bg-[#FFD700] rounded-full flex items-center justify-center text-black font-bold text-xs flex-shrink-0">
+                                                <span className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs flex-shrink-0">
                                                     4
                                                 </span>
                                                 <span>Salve e teste a conexão</span>
@@ -647,64 +658,64 @@ send_whatsapp_message()`,
                                         </ol>
                                     </div>
 
-                                    <div className="grid md:grid-cols-2 gap-4 mt-6">
-                                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                                            <h5 className="font-semibold text-[#333333] mb-3 flex items-center gap-2">
-                                                <Activity className="w-5 h-5 text-[#25D366]" />
+                                    <div className="grid md:grid-cols-2 gap-6 mt-6">
+                                        <div className="bg-black/20 p-6 rounded-xl border border-white/5">
+                                            <h5 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                                                <Activity className="w-5 h-5 text-primary" />
                                                 Eventos Disponíveis
                                             </h5>
-                                            <ul className="space-y-2 text-sm text-[#333333]/70">
+                                            <ul className="space-y-2 text-sm text-foreground/70">
                                                 <li className="flex items-center gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                    <code className="text-xs bg-[#F5F5F5] px-2 py-1 rounded">message.received</code>
+                                                    <CheckCircle className="w-4 h-4 text-primary" />
+                                                    <code className="text-xs bg-white/5 px-2 py-1 rounded text-primary">message.received</code>
                                                 </li>
                                                 <li className="flex items-center gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                    <code className="text-xs bg-[#F5F5F5] px-2 py-1 rounded">message.sent</code>
+                                                    <CheckCircle className="w-4 h-4 text-primary" />
+                                                    <code className="text-xs bg-white/5 px-2 py-1 rounded text-primary">message.sent</code>
                                                 </li>
                                                 <li className="flex items-center gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                    <code className="text-xs bg-[#F5F5F5] px-2 py-1 rounded">message.delivered</code>
+                                                    <CheckCircle className="w-4 h-4 text-primary" />
+                                                    <code className="text-xs bg-white/5 px-2 py-1 rounded text-primary">message.delivered</code>
                                                 </li>
                                                 <li className="flex items-center gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                    <code className="text-xs bg-[#F5F5F5] px-2 py-1 rounded">message.read</code>
+                                                    <CheckCircle className="w-4 h-4 text-primary" />
+                                                    <code className="text-xs bg-white/5 px-2 py-1 rounded text-primary">message.read</code>
                                                 </li>
                                                 <li className="flex items-center gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                    <code className="text-xs bg-[#F5F5F5] px-2 py-1 rounded">message.failed</code>
+                                                    <CheckCircle className="w-4 h-4 text-primary" />
+                                                    <code className="text-xs bg-white/5 px-2 py-1 rounded text-primary">message.failed</code>
                                                 </li>
                                                 <li className="flex items-center gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                    <code className="text-xs bg-[#F5F5F5] px-2 py-1 rounded">session.connected</code>
+                                                    <CheckCircle className="w-4 h-4 text-primary" />
+                                                    <code className="text-xs bg-white/5 px-2 py-1 rounded text-primary">session.connected</code>
                                                 </li>
                                                 <li className="flex items-center gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                                    <code className="text-xs bg-[#F5F5F5] px-2 py-1 rounded">session.disconnected</code>
+                                                    <CheckCircle className="w-4 h-4 text-primary" />
+                                                    <code className="text-xs bg-white/5 px-2 py-1 rounded text-primary">session.disconnected</code>
                                                 </li>
                                             </ul>
                                         </div>
 
-                                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                                            <h5 className="font-semibold text-[#333333] mb-3 flex items-center gap-2">
-                                                <Shield className="w-5 h-5 text-[#0066FF]" />
+                                        <div className="bg-black/20 p-6 rounded-xl border border-white/5">
+                                            <h5 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                                                <Shield className="w-5 h-5 text-primary" />
                                                 Segurança
                                             </h5>
-                                            <ul className="space-y-2 text-sm text-[#333333]/70">
-                                                <li className="flex items-start gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#0066FF] mt-0.5" />
-                                                    <span>Todas as requisições incluem header <code className="text-xs bg-[#F5F5F5] px-1 py-0.5 rounded">X-Webhook-Signature</code></span>
+                                            <ul className="space-y-4 text-sm text-foreground/70">
+                                                <li className="flex items-start gap-3">
+                                                    <CheckCircle className="w-4 h-4 text-primary mt-0.5" />
+                                                    <span>Todas as requisições incluem header <code className="text-xs bg-white/5 px-1 py-0.5 rounded text-primary">X-Webhook-Signature</code></span>
                                                 </li>
-                                                <li className="flex items-start gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#0066FF] mt-0.5" />
+                                                <li className="flex items-start gap-3">
+                                                    <CheckCircle className="w-4 h-4 text-primary mt-0.5" />
                                                     <span>Valide a assinatura usando seu webhook secret</span>
                                                 </li>
-                                                <li className="flex items-start gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#0066FF] mt-0.5" />
+                                                <li className="flex items-start gap-3">
+                                                    <CheckCircle className="w-4 h-4 text-primary mt-0.5" />
                                                     <span>Use HTTPS para receber webhooks</span>
                                                 </li>
-                                                <li className="flex items-start gap-2">
-                                                    <CheckCircle className="w-4 h-4 text-[#0066FF] mt-0.5" />
+                                                <li className="flex items-start gap-3">
+                                                    <CheckCircle className="w-4 h-4 text-primary mt-0.5" />
                                                     <span>Responda com status 200 em até 5 segundos</span>
                                                 </li>
                                             </ul>
@@ -713,109 +724,115 @@ send_whatsapp_message()`,
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-[#25D366]/20">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
                                     <CardTitle className="text-2xl">Exemplo de Payload</CardTitle>
-                                    <CardDescription className="text-base">
+                                    <CardDescription className="text-base text-foreground/50">
                                         Estrutura de dados recebida no webhook
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <CodeBlock code={codeExamples.webhookExample} language="json" />
+                                    <CodeBlock code={codeExamples.webhookExample} language="json" className="bg-black/50 border-white/5 rounded-xl" />
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-[#25D366]/20">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
                                     <CardTitle className="text-2xl">Implementação do Handler</CardTitle>
-                                    <CardDescription className="text-base">
+                                    <CardDescription className="text-base text-foreground/50">
                                         Exemplo de como processar webhooks em Node.js
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <CodeBlock code={codeExamples.webhookHandler} language="javascript" />
+                                    <CodeBlock code={codeExamples.webhookHandler} language="javascript" className="bg-black/50 border-white/5 rounded-xl" />
                                 </CardContent>
                             </Card>
                         </div>
                     </div>
 
-                    {/* Segurança e Prevenção de Abusos */}
+                    {/* Segurança */}
                     <div id="security" className="mb-20">
-                        <h2 className="text-4xl font-serif font-bold text-[#333333] mb-8 flex items-center gap-3">
-                            <Shield className="w-10 h-10 text-[#0066FF]" />
-                            Segurança e Prevenção de Abusos
+                        <h2 className="text-4xl font-serif font-bold text-foreground mb-8 flex items-center gap-3">
+                            <Shield className="w-10 h-10 text-primary" />
+                            Segurança e Prevenção
                         </h2>
 
                         <div className="space-y-6">
-                            <Card className="border-[#0066FF]/20">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
-                                    <CardTitle className="text-2xl">Mecanismos de Segurança</CardTitle>
-                                    <CardDescription className="text-base">
-                                        Como protegemos sua conta e prevenimos uso indevido
-                                    </CardDescription>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-xl">
+                                            <Shield className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-2xl text-foreground">Mecanismos de Segurança</CardTitle>
+                                            <CardDescription className="text-base text-foreground/50">
+                                                Como protegemos sua conta e prevenimos uso indevido
+                                            </CardDescription>
+                                        </div>
+                                    </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="grid md:grid-cols-2 gap-8">
                                         <div className="space-y-4">
-                                            <div className="flex items-start gap-3">
-                                                <Key className="w-6 h-6 text-[#0066FF] mt-1 flex-shrink-0" />
+                                            <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group">
+                                                <Key className="w-6 h-6 text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
                                                 <div>
-                                                    <h4 className="font-semibold text-[#333333] mb-1">Autenticação por API Key</h4>
-                                                    <p className="text-sm text-[#333333]/70">
-                                                        Todas as requisições devem incluir uma API Key válida no header
-                                                        <code className="mx-1 text-xs bg-[#F5F5F5] px-1 py-0.5 rounded">X-API-Key</code>
+                                                    <h4 className="font-semibold text-foreground mb-1">Criptografia E2E</h4>
+                                                    <p className="text-sm text-foreground/70 leading-relaxed">
+                                                        Todas as mensagens são criptografadas de ponta a ponta pelo WhatsApp.
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-start gap-3">
-                                                <Activity className="w-6 h-6 text-[#0066FF] mt-1 flex-shrink-0" />
+                                            <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group">
+                                                <Activity className="w-6 h-6 text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
                                                 <div>
-                                                    <h4 className="font-semibold text-[#333333] mb-1">Rate Limiting</h4>
-                                                    <p className="text-sm text-[#333333]/70">
-                                                        Limites de requisições por minuto baseados no seu plano para evitar sobrecarga
+                                                    <h4 className="font-semibold text-foreground mb-1">Rate Limiting</h4>
+                                                    <p className="text-sm text-foreground/70 leading-relaxed">
+                                                        Limites de requisições por minuto baseados no seu plano para evitar sobrecarga.
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-start gap-3">
-                                                <Lock className="w-6 h-6 text-[#0066FF] mt-1 flex-shrink-0" />
+                                            <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group" >
+                                                <Lock className="w-6 h-6 text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
                                                 <div>
-                                                    <h4 className="font-semibold text-[#333333] mb-1">Criptografia TLS</h4>
-                                                    <p className="text-sm text-[#333333]/70">
-                                                        Todas as comunicações são criptografadas usando TLS 1.3
+                                                    <h4 className="font-semibold text-foreground mb-1">Criptografia TLS</h4>
+                                                    <p className="text-sm text-foreground/70 leading-relaxed">
+                                                        Todas as comunicações são criptografadas usando TLS 1.3.
                                                     </p>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div className="space-y-4">
-                                            <div className="flex items-start gap-3">
-                                                <Database className="w-6 h-6 text-[#0066FF] mt-1 flex-shrink-0" />
+                                            <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group">
+                                                <Database className="w-6 h-6 text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
                                                 <div>
-                                                    <h4 className="font-semibold text-[#333333] mb-1">Logs de Auditoria</h4>
-                                                    <p className="text-sm text-[#333333]/70">
-                                                        Todas as ações são registradas para análise e detecção de anomalias
+                                                    <h4 className="font-semibold text-foreground mb-1">Logs de Auditoria</h4>
+                                                    <p className="text-sm text-foreground/70 leading-relaxed">
+                                                        Todas as ações são registradas em logs imutáveis para análise profunda.
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-start gap-3">
-                                                <AlertTriangle className="w-6 h-6 text-[#FFD700] mt-1 flex-shrink-0" />
+                                            <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group">
+                                                <AlertTriangle className="w-6 h-6 text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
                                                 <div>
-                                                    <h4 className="font-semibold text-[#333333] mb-1">Detecção de Spam</h4>
-                                                    <p className="text-sm text-[#333333]/70">
-                                                        Sistema automático identifica e bloqueia padrões de spam
+                                                    <h4 className="font-semibold text-foreground mb-1">Detecção de Spam</h4>
+                                                    <p className="text-sm text-foreground/70 leading-relaxed">
+                                                        Sistema automático identifica e bloqueia padrões de spam em tempo real.
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-start gap-3">
-                                                <Shield className="w-6 h-6 text-[#0066FF] mt-1 flex-shrink-0" />
+                                            <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group">
+                                                <Shield className="w-6 h-6 text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
                                                 <div>
-                                                    <h4 className="font-semibold text-[#333333] mb-1">Validação de Conteúdo</h4>
-                                                    <p className="text-sm text-[#333333]/70">
-                                                        Verificação automática de conteúdo suspeito ou malicioso
+                                                    <h4 className="font-semibold text-foreground mb-1">Validação de Conteúdo</h4>
+                                                    <p className="text-sm text-foreground/70 leading-relaxed">
+                                                        Verificação automática de conteúdo suspeito ou malicioso antes do envio.
                                                     </p>
                                                 </div>
                                             </div>
@@ -824,13 +841,13 @@ send_whatsapp_message()`,
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-[#FFD700]/20 bg-[#FFD700]/5">
+                            <Card className="border-primary/20 bg-primary/5 backdrop-blur-sm">
                                 <CardHeader>
-                                    <CardTitle className="text-2xl flex items-center gap-2">
-                                        <AlertTriangle className="w-6 h-6 text-[#FFD700]" />
+                                    <CardTitle className="text-2xl flex items-center gap-2 text-foreground">
+                                        <AlertTriangle className="w-6 h-6 text-primary" />
                                         Políticas de Uso Aceitável
                                     </CardTitle>
-                                    <CardDescription className="text-base">
+                                    <CardDescription className="text-base text-foreground/50">
                                         Práticas proibidas que podem resultar em suspensão da conta
                                     </CardDescription>
                                 </CardHeader>
@@ -846,19 +863,19 @@ send_whatsapp_message()`,
                                             "Envio de mensagens para números sem consentimento prévio",
                                             "Violação das políticas do WhatsApp Business",
                                         ].map((policy, idx) => (
-                                            <div key={idx} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-[#FFD700]/20">
-                                                <AlertTriangle className="w-5 h-5 text-[#FFD700] mt-0.5 flex-shrink-0" />
-                                                <span className="text-sm text-[#333333]/80">{policy}</span>
+                                            <div key={idx} className="flex items-start gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
+                                                <AlertTriangle className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                                                <span className="text-sm text-foreground/70">{policy}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-[#25D366]/20">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
-                                    <CardTitle className="text-2xl">Boas Práticas</CardTitle>
-                                    <CardDescription className="text-base">
+                                    <CardTitle className="text-2xl text-foreground">Boas Práticas</CardTitle>
+                                    <CardDescription className="text-base text-foreground/50">
                                         Recomendações para uso seguro e eficiente da API
                                     </CardDescription>
                                 </CardHeader>
@@ -898,11 +915,13 @@ send_whatsapp_message()`,
                                                 description: "Use backoff exponencial para retentar mensagens falhadas"
                                             },
                                         ].map((practice, idx) => (
-                                            <div key={idx} className="flex items-start gap-3 p-4 bg-[#F5F5F5] rounded-lg">
-                                                <CheckCircle className="w-5 h-5 text-[#25D366] mt-0.5 flex-shrink-0" />
+                                            <div key={idx} className="flex items-start gap-4 p-4 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-all group">
+                                                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                    <CheckCircle className="w-5 h-5 text-primary" />
+                                                </div>
                                                 <div>
-                                                    <h4 className="font-semibold text-[#333333] mb-1">{practice.title}</h4>
-                                                    <p className="text-sm text-[#333333]/70">{practice.description}</p>
+                                                    <h4 className="font-semibold text-foreground mb-1">{practice.title}</h4>
+                                                    <p className="text-sm text-foreground/60 leading-relaxed">{practice.description}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -916,171 +935,129 @@ send_whatsapp_message()`,
 
                     {/* FAQ */}
                     <div id="faq" className="mb-20">
-                        <h2 className="text-4xl font-serif font-bold text-[#333333] mb-8 flex items-center gap-3">
-                            <MessageSquare className="w-10 h-10 text-[#25D366]" />
+                        <h2 className="text-4xl font-serif font-bold text-foreground mb-8 flex items-center gap-3">
+                            <MessageSquare className="w-10 h-10 text-primary" />
                             Perguntas Frequentes (FAQ)
                         </h2>
 
                         <div className="space-y-4">
-                            <Card className="border-gray-200">
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Como obtenho minha API Key?</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-[#333333]/70">
-                                        Após criar sua conta, acesse o dashboard e vá para a seção "API Keys".
-                                        Clique em "Criar Nova Chave", dê um nome descritivo e a chave será gerada instantaneamente.
-                                    </p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="border-gray-200">
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Preciso de um número WhatsApp Business oficial?</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-[#333333]/70">
-                                        Não! O ZippyZap funciona com WhatsApp regular (não Business). Você pode usar seu número WhatsApp pessoal ou criar um novo número.
-                                    </p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="border-gray-200">
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Qual é o limite de mensagens por segundo?</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-[#333333]/70">
-                                        Os limites variam por plano: Free (10 req/min), Pro (100 req/min), Enterprise (customizado).
-                                    </p>
-                                </CardContent>
-                            </Card>
+                            {[
+                                {
+                                    q: "Como obtenho minha API Key?",
+                                    a: "Após criar sua conta, acesse o dashboard e vá para a seção \"API Keys\". Clique em \"Criar Nova Chave\", dê um nome descritivo e a chave será gerada instantaneamente."
+                                },
+                                {
+                                    q: "Preciso de um número WhatsApp Business oficial?",
+                                    a: "Não! O ZippyZap funciona com WhatsApp regular (não Business). Você pode usar seu número WhatsApp pessoal ou criar um novo número."
+                                },
+                                {
+                                    q: "Qual é o limite de mensagens por segundo?",
+                                    a: "Os limites variam por plano: Free (10 req/min), Pro (100 req/min), Enterprise (customizado)."
+                                }
+                            ].map((item, idx) => (
+                                <Card key={idx} className="border-white/5 bg-white/[0.02] backdrop-blur-sm group hover:bg-white/[0.04] transition-all">
+                                    <CardHeader>
+                                        <CardTitle className="text-lg text-foreground group-hover:text-primary transition-colors">{item.q}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-foreground/70">{item.a}</p>
+                                    </CardContent>
+                                </Card>
+                            ))}
                         </div>
                     </div>
 
                     {/* Limites e Planos */}
                     <div id="limits" className="mb-20">
-                        <h2 className="text-4xl font-serif font-bold text-[#333333] mb-8 flex items-center gap-3">
-                            <Activity className="w-10 h-10 text-[#25D366]" />
+                        <h2 className="text-4xl font-serif font-bold text-foreground mb-8 flex items-center gap-3">
+                            <Activity className="w-10 h-10 text-primary" />
                             Limites e Planos
                         </h2>
 
                         <div className="grid md:grid-cols-3 gap-6">
-                            <Card className="border-gray-200">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
-                                    <Badge className="w-fit mb-2 bg-gray-100 text-gray-700">Free</Badge>
+                                    <Badge className="w-fit mb-2 bg-white/5 text-foreground/40 border-white/10 uppercase text-[10px] font-bold tracking-[0.1em]">Free</Badge>
                                     <CardTitle className="text-2xl">Plano Gratuito</CardTitle>
-                                    <CardDescription>Perfeito para testes e projetos pequenos</CardDescription>
+                                    <CardDescription className="text-foreground/40 text-sm">Perfeito para testes e projetos pequenos</CardDescription>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="text-3xl font-bold text-[#333333]">
+                                <CardContent className="space-y-6">
+                                    <div className="text-4xl font-bold text-foreground">
                                         1.000
-                                        <span className="text-lg font-normal text-[#333333]/60">/mês</span>
+                                        <span className="text-base font-normal text-foreground/40 ml-1">/mês</span>
                                     </div>
-                                    <ul className="space-y-2 text-sm">
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            1.000 mensagens/mês
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            10 req/minuto
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            1 sessão WhatsApp
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            Webhooks básicos
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            Suporte por email
-                                        </li>
+                                    <ul className="space-y-3 text-sm">
+                                        {[
+                                            "1.000 mensagens/mês",
+                                            "10 req/minuto",
+                                            "1 sessão WhatsApp",
+                                            "Webhooks básicos",
+                                            "Suporte por email"
+                                        ].map((feat, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-foreground/70">
+                                                <CheckCircle className="w-4 h-4 text-primary" />
+                                                {feat}
+                                            </li>
+                                        ))}
                                     </ul>
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-[#25D366] shadow-lg">
+                            <Card className="border-primary/30 bg-primary/5 backdrop-blur-sm relative overflow-hidden">
+                                <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[8px] font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-bl-lg">Popular</div>
                                 <CardHeader>
-                                    <Badge className="w-fit mb-2 bg-[#25D366] text-white">Pro</Badge>
+                                    <Badge className="w-fit mb-2 bg-primary text-primary-foreground border-none uppercase text-[10px] font-bold tracking-[0.1em]">Pro</Badge>
                                     <CardTitle className="text-2xl">Plano Pro</CardTitle>
-                                    <CardDescription>Para empresas em crescimento</CardDescription>
+                                    <CardDescription className="text-foreground/40 text-sm">Para empresas em crescimento</CardDescription>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="text-3xl font-bold text-[#333333]">
+                                <CardContent className="space-y-6">
+                                    <div className="text-4xl font-bold text-foreground">
                                         50.000
-                                        <span className="text-lg font-normal text-[#333333]/60">/mês</span>
+                                        <span className="text-base font-normal text-foreground/40 ml-1">/mês</span>
                                     </div>
-                                    <ul className="space-y-2 text-sm">
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            50.000 mensagens/mês
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            100 req/minuto
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            5 sessões WhatsApp
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            Webhooks avançados
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            Suporte prioritário
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#25D366]" />
-                                            Analytics detalhado
-                                        </li>
+                                    <ul className="space-y-3 text-sm">
+                                        {[
+                                            "50.000 mensagens/mês",
+                                            "100 req/minuto",
+                                            "5 sessões WhatsApp",
+                                            "Webhooks avançados",
+                                            "Suporte prioritário",
+                                            "Analytics detalhado"
+                                        ].map((feat, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-foreground/70">
+                                                <CheckCircle className="w-4 h-4 text-primary" />
+                                                {feat}
+                                            </li>
+                                        ))}
                                     </ul>
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-[#0066FF]">
+                            <Card className="border-white/5 bg-white/[0.02] backdrop-blur-sm">
                                 <CardHeader>
-                                    <Badge className="w-fit mb-2 bg-[#0066FF] text-white">Enterprise</Badge>
+                                    <Badge className="w-fit mb-2 bg-white/10 text-foreground border-white/20 uppercase text-[10px] font-bold tracking-[0.1em]">Enterprise</Badge>
                                     <CardTitle className="text-2xl">Plano Enterprise</CardTitle>
-                                    <CardDescription>Soluções customizadas</CardDescription>
+                                    <CardDescription className="text-foreground/40 text-sm">Soluções customizadas</CardDescription>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="text-3xl font-bold text-[#333333]">
+                                <CardContent className="space-y-6">
+                                    <div className="text-4xl font-bold text-foreground">
                                         Ilimitado
                                     </div>
-                                    <ul className="space-y-2 text-sm">
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
-                                            Mensagens ilimitadas
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
-                                            Rate limit customizado
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
-                                            Sessões ilimitadas
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
-                                            Webhooks customizados
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
-                                            Suporte 24/7
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
-                                            SLA garantido
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-[#0066FF]" />
-                                            Infraestrutura dedicada
-                                        </li>
+                                    <ul className="space-y-3 text-sm">
+                                        {[
+                                            "Mensagens ilimitadas",
+                                            "Rate limit customizado",
+                                            "Sessões ilimitadas",
+                                            "Webhooks customizados",
+                                            "Suporte 24/7",
+                                            "SLA garantido",
+                                            "Infraestrutura dedicada"
+                                        ].map((feat, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-foreground/70">
+                                                <CheckCircle className="w-4 h-4 text-primary" />
+                                                {feat}
+                                            </li>
+                                        ))}
                                     </ul>
                                 </CardContent>
                             </Card>
@@ -1088,23 +1065,26 @@ send_whatsapp_message()`,
                     </div>
 
                     {/* CTA Final */}
-                    <Card className="border-[#25D366] bg-gradient-to-br from-[#25D366]/5 to-[#FFD700]/5">
-                        <CardContent className="p-12 text-center">
-                            <h2 className="text-3xl font-serif font-bold text-[#333333] mb-4">
+                    <Card className="border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-xl relative overflow-hidden">
+                        <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2" />
+                        <CardContent className="p-12 md:p-20 text-center relative z-10">
+                            <h2 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-6">
                                 Pronto para Começar?
                             </h2>
-                            <p className="text-lg text-[#333333]/70 mb-8 max-w-2xl mx-auto">
-                                Crie sua conta gratuitamente e comece a enviar mensagens WhatsApp em minutos
+                            <p className="text-xl text-foreground/60 mb-10 max-w-2xl mx-auto leading-relaxed">
+                                Crie sua conta gratuitamente e comece a enviar mensagens WhatsApp em poucos minutos com nossa API robusta.
                             </p>
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                <Button size="lg" className="text-lg px-8 bg-[#FFD700] text-black hover:bg-[#FFD700]/90">
-                                    Começar Agora
-                                    <ArrowRight className="w-5 h-5 ml-2" />
-                                </Button>
+                            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                                <Link href="/signup">
+                                    <Button size="lg" className="text-base px-10 h-14 bg-primary text-primary-foreground hover:opacity-90 shadow-[0_0_30px_rgba(37,211,102,0.3)] rounded-full font-bold uppercase tracking-[0.2em]">
+                                        Começar Agora
+                                        <ArrowRight className="w-5 h-5 ml-2" />
+                                    </Button>
+                                </Link>
                                 <Button
                                     variant="outline"
                                     size="lg"
-                                    className="text-lg px-8 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white"
+                                    className="text-base px-10 h-14 border-white/10 text-foreground/70 hover:bg-white/5 hover:text-foreground backdrop-blur-sm rounded-full font-bold uppercase tracking-[0.2em]"
                                 >
                                     <FileText className="w-5 h-5 mr-2" />
                                     API Reference
@@ -1116,59 +1096,56 @@ send_whatsapp_message()`,
             </section >
 
             {/* Footer */}
-            < footer className="py-12 px-4 border-t border-gray-200 bg-[#F5F5F5]" >
+            <footer className="py-20 px-4 border-t border-white/5 bg-background">
                 <div className="container mx-auto max-w-6xl">
-                    <div className="grid md:grid-cols-4 gap-8">
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-8 h-8 bg-[#FFD700] rounded-lg flex items-center justify-center">
-                                    <Zap className="w-5 h-5 text-black" />
-                                </div>
-                                <span className="text-xl font-serif font-bold text-[#333333]">ZippyZap</span>
-                            </div>
-                            <p className="text-[#333333]/70 text-sm">
-                                A API WhatsApp mais confiável para desenvolvedores e empresas.
+                    <div className="grid md:grid-cols-4 gap-12">
+                        <div className="col-span-1 md:col-span-1">
+                            <Link href="/">
+                                <Logo />
+                            </Link>
+                            <p className="text-foreground/50 text-sm mt-6 mb-8 leading-relaxed max-w-xs">
+                                A API WhatsApp mais confiável para desenvolvedores e empresas que buscam performance e simplicidade.
                             </p>
                         </div>
 
                         <div>
-                            <h4 className="font-semibold text-[#333333] mb-4">Produto</h4>
-                            <ul className="space-y-2 text-sm text-[#333333]/70">
-                                <li><a href="#" className="hover:text-[#333333] transition-colors">Recursos</a></li>
-                                <li><a href="#" className="hover:text-[#333333] transition-colors">Preços</a></li>
-                                <li><a href="#" className="hover:text-[#333333] transition-colors">Status</a></li>
+                            <h4 className="font-bold text-foreground text-[10px] uppercase tracking-[0.2em] mb-8">Produto</h4>
+                            <ul className="space-y-4 text-sm text-foreground/40 font-bold uppercase tracking-[0.1em]">
+                                <li><a href="/#features" className="hover:text-primary transition-colors">Recursos</a></li>
+                                <li><a href="/#pricing" className="hover:text-primary transition-colors">Preços</a></li>
+                                <li><a href="#" className="hover:text-primary transition-colors">Status</a></li>
                             </ul>
                         </div>
 
                         <div>
-                            <h4 className="font-semibold text-[#333333] mb-4">Desenvolvedores</h4>
-                            <ul className="space-y-2 text-sm text-[#333333]/70">
-                                <li><Link href="/docs" className="hover:text-[#333333] transition-colors">Documentação</Link></li>
-                                <li><Link href="/docs#api-reference" className="hover:text-[#333333] transition-colors">API Reference</Link></li>
-                                <li><a href="#" className="hover:text-[#333333] transition-colors">Exemplos</a></li>
+                            <h4 className="font-bold text-foreground text-[10px] uppercase tracking-[0.2em] mb-8">Desenvolvedores</h4>
+                            <ul className="space-y-4 text-sm text-foreground/40 font-bold uppercase tracking-[0.1em]">
+                                <li><Link href="/docs" className="hover:text-primary transition-colors">Documentação</Link></li>
+                                <li><Link href="/docs#api-reference" className="hover:text-primary transition-colors">API Reference</Link></li>
+                                <li><a href="#" className="hover:text-primary transition-colors">Exemplos</a></li>
                             </ul>
                         </div>
 
                         <div>
-                            <h4 className="font-semibold text-[#333333] mb-4">Suporte</h4>
-                            <ul className="space-y-2 text-sm text-[#333333]/70">
-                                <li><a href="#" className="hover:text-[#333333] transition-colors">Central de Ajuda</a></li>
-                                <li><a href="#" className="hover:text-[#333333] transition-colors">Contato</a></li>
-                                <li><a href="#" className="hover:text-[#333333] transition-colors">Comunidade</a></li>
+                            <h4 className="font-bold text-foreground text-[10px] uppercase tracking-[0.2em] mb-8">Suporte</h4>
+                            <ul className="space-y-4 text-sm text-foreground/40 font-bold uppercase tracking-[0.1em]">
+                                <li><a href="#" className="hover:text-primary transition-colors">Central de Ajuda</a></li>
+                                <li><a href="#" className="hover:text-primary transition-colors">Contato</a></li>
+                                <li><a href="#" className="hover:text-primary transition-colors">Comunidade</a></li>
                             </ul>
                         </div>
                     </div>
 
-                    <div className="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-                        <p className="text-sm text-[#333333]/70">© 2024 ZippyZap. Todos os direitos reservados.</p>
-                        <div className="flex gap-6 mt-4 md:mt-0">
-                            <a href="#" className="text-[#333333]/70 hover:text-[#333333] transition-colors text-sm">Privacidade</a>
-                            <a href="#" className="text-[#333333]/70 hover:text-[#333333] transition-colors text-sm">Termos</a>
-                            <a href="#" className="text-[#333333]/70 hover:text-[#333333] transition-colors text-sm">Cookies</a>
+                    <div className="border-t border-white/5 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <p className="text-sm text-foreground/30 font-medium">© 2024 ZippyZap. Todos os direitos reservados.</p>
+                        <div className="flex gap-8">
+                            <a href="#" className="text-foreground/30 hover:text-foreground transition-colors text-xs font-bold uppercase tracking-[0.1em]">Privacidade</a>
+                            <a href="#" className="text-foreground/30 hover:text-foreground transition-colors text-xs font-bold uppercase tracking-[0.1em]">Termos</a>
+                            <a href="#" className="text-foreground/30 hover:text-foreground transition-colors text-xs font-bold uppercase tracking-[0.1em]">Cookies</a>
                         </div>
                     </div>
                 </div>
-            </footer >
+            </footer>
         </div >
     )
 }

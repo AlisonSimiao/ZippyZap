@@ -6,6 +6,7 @@ import {
   redisSet,
   redisDeletePattern,
   redisExpire,
+  redisSetWithExpiry,
 } from '../services/redis';
 import { checkAdmin } from '../middleware/admin';
 import { addJob } from '../streams/producer';
@@ -15,97 +16,104 @@ import { format } from 'date-fns';
 export const dashboardRoutes = new Elysia({ prefix: '/dashboard' })
   .get('/overview', async (ctx: any) => {
     const user = ctx.user;
-    if (!user) throw new ForbiddenException('Not authenticated');
+    if (!user) {
+      console.error('[DASHBOARD] User not found in context');
+      throw new ForbiddenException('Not authenticated');
+    }
 
-    const [dbUser, messages, webhooks, webhookLogs] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: user.id },
-        include: {
-          Plan: true,
-          ApiKeys: true,
-          webhooks: true,
-        },
-      }),
-      prisma.message.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-      }),
-      prisma.webhook.findMany({
-        where: { userId: user.id },
-      }),
-      prisma.webhookLog.findMany({
-        where: { webhook: { userId: user.id } },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: { webhook: true },
-      }),
-    ]);
+    try {
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      const dailyUsageKey = `usage:daily:${user.id}:${todayStr}`;
 
-    if (!dbUser) throw new Error('User not found');
+      console.log(`[DASHBOARD] Fetching data for user ${user.id}`);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+      const [dbUser, messages, webhookLogs, redisUsage] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: user.id },
+          include: {
+            Plan: true,
+            ApiKeys: true,
+            webhooks: true,
+          },
+        }),
+        prisma.message.findMany({
+          where: { userId: user.id },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+        }),
+        prisma.webhookLog.findMany({
+          where: { webhook: { userId: user.id } },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+        }),
+        redisGet(dailyUsageKey).catch(err => {
+          console.error('[DASHBOARD] Redis error:', err);
+          return null;
+        }),
+      ]);
 
-    const [messagesToday, messagesSent] = await Promise.all([
-      prisma.message.count({
-        where: { userId: user.id, createdAt: { gte: today } },
-      }),
-      prisma.message.count({
+      if (!dbUser) {
+        console.error(`[DASHBOARD] User ${user.id} not found in database`);
+        throw new Error('User not found');
+      }
+
+      const messagesToday = redisUsage ? parseInt(redisUsage, 10) : 0;
+      
+      const messagesSent = await prisma.message.count({
         where: {
           userId: user.id,
-          createdAt: { gte: today },
+          createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
           status: 'SENT',
         },
-      }),
-    ]);
+      });
 
-    // Instance Status
-    const status =
-      (await redisGet(`user:${user.id}:status`)) || 'disconnected';
+      const status = (await redisGet(`user:${user.id}:status`)) || 'disconnected';
 
-    const logs = [
-      ...messages.map((m) => ({
-        type: 'message',
-        action: `Mensagem ${m.status.toLowerCase()} `,
-        time: m.createdAt,
-        status: m.status === 'FAILED' ? 'error' : 'success',
-        details: m.to,
-      })),
-      ...webhookLogs.map((l) => ({
-        type: 'webhook',
-        action: `Webhook ${l.event} `,
-        time: l.createdAt,
-        status: l.status >= 200 && l.status < 300 ? 'success' : 'error',
-        details: l.status.toString(),
-      })),
-    ]
-      .sort(
-        (a, b) =>
-          new Date(b.time).getTime() - new Date(a.time).getTime(),
-      )
-      .slice(0, 10);
+      const logs = [
+        ...messages.map((m) => ({
+          type: 'message' as const,
+          action: `Mensagem ${m.status.toLowerCase()} `,
+          time: m.createdAt.toISOString(),
+          status: m.status === 'FAILED' ? 'error' as const : 'success' as const,
+          details: m.to,
+        })),
+        ...webhookLogs.map((l) => ({
+          type: 'webhook' as const,
+          action: `Webhook ${l.event} `,
+          time: l.createdAt.toISOString(),
+          status: l.status >= 200 && l.status < 300 ? 'success' as const : 'error' as const,
+          details: l.status.toString(),
+        })),
+      ]
+        .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+        .slice(0, 10);
 
-    return {
-      stats: {
-        apiKeys: dbUser.ApiKeys.length,
-        messagesToday,
-        planLimit: dbUser.Plan.dailyLimit,
-        instanceStatus: status,
-      },
-      usage: {
-        current: messagesToday,
-        limit: dbUser.Plan.dailyLimit,
-        percentage: (messagesToday / (dbUser.Plan.dailyLimit || 1)) * 100,
-      },
-      recentActivity: logs,
-      metrics: {
-        sent: messagesSent,
-        received: 0,
-        webhooks: webhookLogs.length,
-        errors: webhookLogs.filter((l) => l.status >= 400).length,
-      },
-    };
+      const result = {
+        stats: {
+          apiKeys: dbUser.ApiKeys.length,
+          messagesToday,
+          planLimit: dbUser.Plan.dailyLimit,
+          instanceStatus: status,
+        },
+        usage: {
+          current: messagesToday,
+          limit: dbUser.Plan.dailyLimit,
+          percentage: (messagesToday / (dbUser.Plan.dailyLimit || 1)) * 100,
+        },
+        recentActivity: logs,
+        metrics: {
+          sent: messagesSent,
+          received: 0,
+          webhooks: dbUser.webhooks.length,
+          errors: webhookLogs.filter((l) => l.status >= 400).length,
+        },
+      };
+
+      return result;
+    } catch (error) {
+      console.error('[DASHBOARD] Error building overview:', error);
+      throw error;
+    }
   })
   // ─── Send Message (from Dashboard) ─────────────────────────────
   .post(

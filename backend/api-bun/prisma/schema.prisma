@@ -85,6 +85,8 @@ model Message {
 
   user User @relation(fields: [userId], references: [id])
 
+  @@index([userId])
+  @@index([userId, createdAt])
   @@map("messages")
 }
 
@@ -202,6 +204,8 @@ model WebhookLog {
 
   webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 
+  @@index([webhookId])
+  @@index([webhookId, createdAt])
   @@map("webhook_logs")
 }
 

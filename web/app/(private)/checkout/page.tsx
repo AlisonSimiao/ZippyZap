@@ -1,18 +1,18 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Loader2, ArrowLeft } from "lucide-react"
+import { CheckCircle, Loader2, ArrowLeft, ShieldCheck, CreditCard, Sparkles, Zap, Star, Crown } from "lucide-react"
 import { api } from "@/lib/api"
 import { IPlan } from "@/types/plan.types"
 import { IUser } from "@/types/user.types"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 
-export default function CheckoutPage() {
+function CheckoutContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const planId = searchParams.get("planId")
@@ -64,22 +64,15 @@ export default function CheckoutPage() {
                 return
             }
 
-            console.log('Criando pagamento para plano:', plan.id)
             const response = await api.createPayment(accessToken, plan.id)
-            console.log('Resposta do backend:', response)
 
             if (!response || !response.checkoutUrl) {
                 throw new Error('URL de checkout não foi retornada pelo servidor')
             }
 
-            console.log('Redirecionando para:', response.checkoutUrl)
-
-            // Redirecionar para o Mercado Pago
             window.location.href = response.checkoutUrl
         } catch (err: any) {
-            console.error("Erro completo:", err)
-            console.error("Resposta do erro:", err.response?.data)
-
+            console.error("Erro ao processar pagamento:", err)
             const errorMessage = err.response?.data?.message
                 || err.message
                 || "Erro ao processar pagamento. Tente novamente."
@@ -97,30 +90,37 @@ export default function CheckoutPage() {
     }
 
     const formatLimit = (limit: number) => {
-        return limit > 999999 ? '✨ Ilimitado' : limit.toLocaleString('pt-BR')
+        return limit > 999999 ? 'Ilimitado' : limit.toLocaleString('pt-BR')
     }
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-[#FFD700]" />
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+                <div className="relative">
+                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                    <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 animate-pulse"></div>
+                </div>
+                <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30 animate-pulse">Preparando Checkout...</p>
             </div>
         )
     }
 
     if (error && !plan) {
         return (
-            <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center p-4">
-                <Card className="max-w-md w-full">
-                    <CardHeader>
-                        <CardTitle className="text-red-600">Erro</CardTitle>
-                        <CardDescription>{error}</CardDescription>
+            <div className="min-h-screen bg-background flex items-center justify-center p-6">
+                <Card className="max-w-md w-full bg-white/[0.02] border-rose-500/20 shadow-2xl shadow-rose-500/5">
+                    <CardHeader className="text-center">
+                        <div className="w-16 h-16 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-500/20">
+                            <ShieldCheck className="h-8 w-8 text-rose-500" />
+                        </div>
+                        <CardTitle className="text-xl font-bold text-rose-500 tracking-tight">Ocorreu um Erro</CardTitle>
+                        <CardDescription className="text-foreground/40 font-medium">{error}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Link href="/#pricing">
-                            <Button variant="outline" className="w-full">
+                        <Link href="/dashboard/plans">
+                            <Button variant="ghost" className="w-full text-foreground/40 hover:text-foreground hover:bg-white/5 font-bold uppercase tracking-widest text-xs h-12 rounded-2xl">
                                 <ArrowLeft className="w-4 h-4 mr-2" />
-                                Voltar para Planos
+                                Escolher outro Plano
                             </Button>
                         </Link>
                     </CardContent>
@@ -130,101 +130,171 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F5F5F5] py-12 px-4">
-            <div className="container mx-auto max-w-2xl">
-                <Link href="/#pricing" className="inline-flex items-center text-[#333333]/70 hover:text-[#333333] mb-8">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Voltar para Planos
+        <div className="min-h-screen bg-background py-20 px-6 relative overflow-hidden">
+            {/* Background Decor */}
+            <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full -z-10 animate-pulse" />
+            <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full -z-10 animate-pulse delay-700" />
+
+            <div className="max-w-4xl mx-auto space-y-12 relative z-10">
+                <Link href="/dashboard/plans" className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 hover:text-primary transition-all group">
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    Alterar Seleção de Plano
                 </Link>
 
-                <Card className="border-gray-200 shadow-lg">
-                    <CardHeader className="text-center pb-6">
-                        <Badge className="bg-[#FFD700] text-black px-4 py-1 w-fit mx-auto mb-4">
-                            Checkout
-                        </Badge>
-                        <CardTitle className="text-3xl text-[#333333]">Confirme sua Assinatura</CardTitle>
-                        <CardDescription className="text-lg">
-                            Você está prestes a assinar o plano {plan?.name}
-                        </CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="space-y-6">
-                        {/* Resumo do Plano */}
-                        <div className="bg-[#F5F5F5] rounded-lg p-6 space-y-4">
-                            <div className="flex justify-between items-center">
-                                <span className="text-[#333333] font-semibold">Plano</span>
-                                <span className="text-[#333333] text-lg font-bold">{plan?.name}</span>
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+                    {/* Left Column: Plan Summary */}
+                    <div className="lg:col-span-3 space-y-8">
+                        <div className="space-y-4">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest">
+                                <Sparkles className="h-3 w-3" />
+                                Confirmação de Upgrade
                             </div>
+                            <h1 className="text-4xl font-serif font-black tracking-tight leading-tight">Revise os detalhes da sua assinatura</h1>
+                            <p className="text-sm text-foreground/40 font-medium leading-relaxed">Você está a um passo de desbloquear recursos premium para sua automação.</p>
+                        </div>
 
-                            <div className="border-t border-gray-200 pt-4 space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <CheckCircle className="w-5 h-5 text-[#25D366]" />
-                                    <span className="text-[#333333]">
-                                        {formatLimit(plan?.dailyLimit || 0)} mensagens/dia
-                                    </span>
+                        <Card className="bg-white/[0.02] border-white/5 overflow-hidden shadow-2xl">
+                            <CardHeader className="p-8 pb-4 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-8 opacity-5">
+                                    {plan?.name === 'Basic' && <Zap className="h-20 w-20" />}
+                                    {plan?.name === 'Pro' && <Star className="h-20 w-20" />}
+                                    {plan?.name === 'Enterprise' && <Crown className="h-20 w-20" />}
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <CheckCircle className="w-5 h-5 text-[#25D366]" />
-                                    <span className="text-[#333333]">
-                                        {formatLimit(plan?.monthlyLimit || 0)} mensagens/mês
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <CheckCircle className="w-5 h-5 text-[#25D366]" />
-                                    <span className="text-[#333333]">Webhooks em tempo real</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <CheckCircle className="w-5 h-5 text-[#25D366]" />
-                                    <span className="text-[#333333]">Suporte 24/7</span>
-                                </div>
-                            </div>
-
-                            <div className="border-t border-gray-200 pt-4 flex justify-between items-center">
-                                <span className="text-[#333333] font-semibold text-lg">Total</span>
-                                <div className="text-right">
-                                    <div className="text-3xl font-bold text-[#333333]">
-                                        {formatPrice(Number(plan?.price || 0))}
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                        {plan?.name === 'Basic' && <Zap className="h-4 w-4" />}
+                                        {plan?.name === 'Pro' && <Star className="h-4 w-4" />}
+                                        {plan?.name === 'Enterprise' && <Crown className="h-4 w-4" />}
                                     </div>
-                                    <div className="text-sm text-[#333333]/70">por mês</div>
+                                    <CardTitle className="text-xl font-bold tracking-tight">ZippyZap {plan?.name}</CardTitle>
                                 </div>
-                            </div>
-                        </div>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-3xl font-serif font-black tracking-tighter">{formatPrice(Number(plan?.price || 0))}</span>
+                                    <span className="text-xs font-bold text-foreground/20 uppercase tracking-widest">/ mensal</span>
+                                </div>
+                            </CardHeader>
 
-                        {/* Informações de Pagamento */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <p className="text-sm text-blue-800">
-                                <strong>Pagamento Seguro:</strong> Você será redirecionado para o Mercado Pago para completar o pagamento de forma segura.
-                            </p>
-                        </div>
+                            <CardContent className="p-8 pt-6 space-y-8">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Limite Diário</p>
+                                        <p className="text-lg font-bold tracking-tight">{formatLimit(plan?.dailyLimit || 0)}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Limite Mensal</p>
+                                        <p className="text-lg font-bold tracking-tight">{formatLimit(plan?.monthlyLimit || 0)}</p>
+                                    </div>
+                                </div>
 
-                        {error && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                                <p className="text-sm text-red-800">{error}</p>
-                            </div>
-                        )}
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Vantagens Inclusas</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                                        {plan?.features?.map((feature, index) => (
+                                            <div key={index} className="flex items-center gap-3 text-xs font-semibold text-foreground/60 transition-colors hover:text-foreground">
+                                                <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                                                {feature}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </CardContent>
+                            
+                            <CardFooter className="p-8 bg-white/[0.01] border-t border-white/5 flex items-center gap-4">
+                                <div className="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-500">
+                                    <ShieldCheck className="h-5 w-5" />
+                                </div>
+                                <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-widest leading-relaxed">Garantia total de satisfação. Cancele sua assinatura a qualquer momento sem custos adicionais.</p>
+                            </CardFooter>
+                        </Card>
+                    </div>
 
-                        {/* Botão de Checkout */}
-                        <Button
-                            onClick={handleCheckout}
-                            disabled={processing}
-                            className="w-full bg-[#FFD700] text-black hover:bg-[#FFD700]/90 text-lg py-6"
-                        >
-                            {processing ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    Processando...
-                                </>
-                            ) : (
-                                "Prosseguir para Pagamento"
-                            )}
-                        </Button>
+                    {/* Right Column: Payment & Summary */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card className="bg-white/[0.02] border-primary/20 shadow-2xl shadow-primary/5 overflow-hidden">
+                            <CardHeader className="p-8 pb-4">
+                                <CardTitle className="text-lg font-bold tracking-tight flex items-center gap-2">
+                                    <CreditCard className="h-4 w-4 text-primary" />
+                                    Total a Pagar
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-8 pt-0 space-y-8">
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-foreground/40 font-medium">Subtotal</span>
+                                        <span className="font-bold tracking-tight">{formatPrice(Number(plan?.price || 0))}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-foreground/40 font-medium">Taxas</span>
+                                        <span className="text-emerald-500 font-bold tracking-tight">Isento</span>
+                                    </div>
+                                    <div className="pt-4 border-t border-white/5 flex justify-between items-end">
+                                        <span className="text-lg font-bold tracking-tight">Total Geral</span>
+                                        <span className="text-3xl font-serif font-black tracking-tighter text-primary">
+                                            {formatPrice(Number(plan?.price || 0))}
+                                        </span>
+                                    </div>
+                                </div>
 
-                        <p className="text-xs text-center text-[#333333]/60">
-                            Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade
-                        </p>
-                    </CardContent>
-                </Card>
+                                <div className="p-4 bg-primary/5 border border-primary/10 rounded-2xl flex items-start gap-4">
+                                    <div className="p-2 bg-primary/10 rounded-lg shrink-0 mt-0.5">
+                                        <CreditCard className="h-3 w-3 text-primary" />
+                                    </div>
+                                    <p className="text-[10px] text-foreground/50 font-bold leading-relaxed uppercase tracking-widest">
+                                        Pagamento processado com segurança via <span className="text-primary">Mercado Pago</span>.
+                                    </p>
+                                </div>
+
+                                {error && (
+                                    <div className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-2xl">
+                                        <p className="text-[10px] text-rose-500 font-bold uppercase tracking-widest leading-relaxed text-center">{error}</p>
+                                    </div>
+                                )}
+
+                                <Button
+                                    onClick={handleCheckout}
+                                    disabled={processing}
+                                    className="w-full bg-primary text-white hover:opacity-90 font-bold uppercase tracking-widest text-xs h-14 rounded-2xl shadow-xl shadow-primary/20 transition-all group overflow-hidden relative"
+                                >
+                                    <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                                    <span className="relative z-10 flex items-center justify-center gap-3">
+                                        {processing ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                Processando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Concluir Assinatura
+                                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                            </>
+                                        )}
+                                    </span>
+                                </Button>
+                            </CardContent>
+                            <CardFooter className="p-8 pt-0 flex flex-col items-center gap-6">
+                                <p className="text-[9px] text-center text-foreground/20 font-black uppercase tracking-[0.2em] leading-relaxed">
+                                    Ao confirmar, você concorda com nossos termos de uso e faturamento recorrente.
+                                </p>
+                            </CardFooter>
+                        </Card>
+                    </div>
+                </div>
             </div>
         </div>
+    )
+}
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+                <div className="relative">
+                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                    <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 animate-pulse"></div>
+                </div>
+            </div>
+        }>
+            <CheckoutContent />
+        </Suspense>
     )
 }
