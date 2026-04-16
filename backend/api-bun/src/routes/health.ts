@@ -2,6 +2,7 @@ import { Elysia } from 'elysia';
 import { prisma } from '../services/prisma';
 import { redis } from '../services/redis';
 import { wuzapiClient } from '../services/wuzapi';
+import { whatsappManagerClient } from '../services/whatsapp-manager';
 
 export const healthRoutes = new Elysia({ prefix: '/health' })
   .get(
@@ -46,6 +47,29 @@ export const healthRoutes = new Elysia({ prefix: '/health' })
     checks.circuitBreaker = wuzapiClient.getCircuitState();
 
     const allOk = checks.wuzapi === 'ok' && wuzapiClient.isHealthy();
+
+    return {
+      status: allOk ? 'healthy' : 'degraded',
+      timestamp: new Date().toISOString(),
+      checks,
+    };
+  })
+  .get('/whatsapp-manager', async () => {
+    const checks: Record<string, string> = {};
+    const BASE_URL = Bun.env.WHATSAPP_MANAGER_URL || 'http://localhost:8090';
+
+    try {
+      const response = await fetch(`${BASE_URL}/health`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      checks.whatsappManager = response.ok ? 'ok' : 'error';
+    } catch {
+      checks.whatsappManager = 'error';
+    }
+
+    checks.circuitBreaker = whatsappManagerClient.getCircuitState();
+
+    const allOk = checks.whatsappManager === 'ok' && whatsappManagerClient.isHealthy();
 
     return {
       status: allOk ? 'healthy' : 'degraded',

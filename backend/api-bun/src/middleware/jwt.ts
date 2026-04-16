@@ -2,13 +2,14 @@ import { Elysia } from 'elysia';
 import { jwt } from '@elysiajs/jwt';
 import { prisma } from '../services/prisma';
 
-const PUBLIC_PATHS = ['/', '/plans', '/health', '/health/wuzapi', '/swagger', '/payments/webhook'];
+const PUBLIC_PATHS = ['/', '/plans', '/health', '/health/wuzapi', '/health/whatsapp-manager', '/swagger', '/payments/webhook'];
 
 function isPublicPath(path: string): boolean {
   return PUBLIC_PATHS.includes(path) || 
     path.startsWith('/auth/') || 
     path.startsWith('/whatsapp') || 
-    path.startsWith('/webhooks/wuzapi');
+    path.startsWith('/webhooks/wuzapi') ||
+    path.startsWith('/webhooks/whatsapp-manager');
 }
 
 export const requestLogger = new Elysia({ name: 'request-logger' })

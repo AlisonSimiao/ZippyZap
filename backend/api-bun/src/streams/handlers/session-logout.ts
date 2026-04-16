@@ -1,35 +1,26 @@
 import { redisGet, redisDel } from '../../services/redis';
-import { wuzapiClient } from '../../services/wuzapi';
+import { whatsappManagerClient } from '../../services/whatsapp-manager';
 
 /**
- * Session Logout handler — replaces WSS SessionLogout processor
+ * Session Logout handler — uses WhatsApp Manager service
  */
 export async function handleSessionLogout(
   data: Record<string, any>,
 ): Promise<void> {
-  const { idUser, apiKeyHash } = data;
+  const { idUser } = data;
 
-  // Get API key hash from Redis if not provided
-  let userApiKeyHash = apiKeyHash;
-  if (!userApiKeyHash) {
-    userApiKeyHash = await redisGet(`user:${idUser}:apikey`);
-    if (!userApiKeyHash) {
-      console.warn(
-        `[SessionLogout] API key not found for user ${idUser}, cannot logout from WuzAPI`,
-      );
-      await cleanupLocalState(idUser);
-      return;
-    }
+  if (!idUser) {
+    throw new Error('idUser is required');
   }
 
+  const sessionId = `user_${idUser}`;
+
   try {
-    // Logout from WuzAPI
-    await wuzapiClient.logout(idUser, userApiKeyHash);
+    await whatsappManagerClient.logout(sessionId);
     await cleanupLocalState(idUser);
     console.log(`[SessionLogout] Session logout completed for user ${idUser}`);
   } catch (error) {
     console.error(`[SessionLogout] Failed to logout session for ${idUser}:`, error);
-    // Even on error, try to cleanup local state
     await cleanupLocalState(idUser);
     throw error;
   }
@@ -38,4 +29,5 @@ export async function handleSessionLogout(
 async function cleanupLocalState(userId: string): Promise<void> {
   await redisDel(`user:${userId}:status`);
   await redisDel(`user:${userId}:qrcode`);
+  await redisDel(`user:${userId}:session`);
 }

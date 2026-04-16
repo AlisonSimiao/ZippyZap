@@ -8,6 +8,7 @@ import {
   type IWebhookJob,
   type QRWebhookJob,
   type WuzapiWebhookPayload,
+  type WhatsAppManagerWebhookPayload,
 } from '../types';
 import { PaymentStatus } from '@prisma/client';
 import * as crypto from 'crypto';
@@ -163,6 +164,110 @@ export const webhookRoutes = new Elysia({ prefix: '/webhooks' })
       return { success: true };
     } catch (error) {
       console.error('[WuzAPI] Error processing webhook:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  })
+  // ─── WhatsApp Manager Webhook (Public) ───────────────────────────
+  .post('/whatsapp-manager', async ({ body, set }) => {
+    set.status = 200;
+
+    try {
+      const payload = body as WhatsAppManagerWebhookPayload;
+      const sessionId = payload.sessionId;
+
+      console.log(
+        `[WhatsAppManager] Received webhook: ${payload.event} for session ${sessionId}`,
+      );
+
+      let jobData: IWebhookJob | QRWebhookJob | null = null;
+
+      switch (payload.event) {
+        case 'qr':
+          jobData = {
+            idUser: sessionId,
+            type: 'QR',
+            data: {
+              qr: payload.data.qr,
+              expireAt: Date.now() + 60000,
+            },
+          };
+          break;
+
+        case 'connected':
+          jobData = {
+            idUser: sessionId,
+            type: 'session.connected',
+            data: {},
+          };
+          break;
+
+        case 'disconnected':
+          jobData = {
+            idUser: sessionId,
+            type: 'session.disconnected',
+            data: { reason: payload.data.reason || 'unknown' },
+          };
+          break;
+
+        case 'message.received':
+          jobData = {
+            idUser: sessionId,
+            type: 'message.received',
+            data: {
+              chatId: payload.data.chatId,
+              sender: payload.data.sender,
+              timestamp: payload.data.timestamp,
+              type: payload.data.type,
+              text: payload.data.text,
+              reply: payload.data.reply,
+              senderName: payload.data.senderName,
+              media: payload.data.media,
+              reaction: payload.data.reaction,
+              idMessage: payload.data.idMessage,
+              isFromMe: payload.data.isFromMe,
+              isGroup: payload.data.isGroup,
+            },
+          };
+          break;
+
+        case 'message.sent':
+          jobData = {
+            idUser: sessionId,
+            type: 'message.sent',
+            data: {
+              chatId: payload.data.chatId,
+              idMessage: payload.data.idMessage,
+              timestamp: payload.data.timestamp,
+            },
+          };
+          break;
+
+        case 'message.receipt':
+          jobData = {
+            idUser: sessionId,
+            type: 'message.receipt',
+            data: {
+              chatId: payload.data.chatId,
+              messageIds: payload.data.messageIds,
+              receiptType: payload.data.receiptType,
+            },
+          };
+          break;
+
+        default:
+          console.log(`[WhatsAppManager] Unhandled event: ${payload.event}`);
+      }
+
+      if (jobData) {
+        await addJob('streams:webhook', jobData);
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('[WhatsAppManager] Error processing webhook:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',

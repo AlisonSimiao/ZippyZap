@@ -3,7 +3,7 @@ import { handleSendMessage } from '../streams/handlers/send-message';
 import { handleCreateUser } from '../streams/handlers/create-user';
 import { handleSessionLogout } from '../streams/handlers/session-logout';
 import { handleWebhook } from '../streams/handlers/webhook';
-import { wuzapiClient } from '../services/wuzapi';
+import { whatsappManagerClient } from '../services/whatsapp-manager';
 import { redisSet } from '../services/redis';
 import { prisma } from '../services/prisma';
 
@@ -49,29 +49,22 @@ export async function startWorkers(): Promise<void> {
 
   console.log('[Workers] All 4 stream consumers started');
 
-  // ─── Status Check Timer (replaces WSS StatusCheckProcessor) ────
-  const STATUS_CHECK_INTERVAL = 30000; // 30 seconds
+  // ─── Status Check Timer ─────────────────────────────────────────
+  // Note: Session status is primarily updated via webhooks from WhatsApp Manager
+  // This is a fallback/heartbeat check
+  const STATUS_CHECK_INTERVAL = 60000; // 60 seconds
 
   setInterval(async () => {
     try {
-      const users = await wuzapiClient.getUsers();
-
-      for (const user of users) {
-        try {
-          if (user.connected && user.loggedIn) {
-            await redisSet(`user:${user.name}:status`, 'connected');
-          } else {
-            await redisSet(`user:${user.name}:status`, 'disconnected');
-          }
-        } catch (err) {
-          console.error(
-            `[StatusCheck] Failed for user ${user.name}:`,
-            err,
-          );
-        }
+      // Simple health check - verify WhatsApp Manager is reachable
+      const isHealthy = whatsappManagerClient.isHealthy();
+      if (isHealthy) {
+        console.log('[StatusCheck] WhatsApp Manager is healthy');
+      } else {
+        console.warn('[StatusCheck] WhatsApp Manager circuit breaker is OPEN');
       }
     } catch (error) {
-      console.error('[StatusCheck] Failed to check statuses:', error);
+      console.error('[StatusCheck] Failed:', error);
     }
   }, STATUS_CHECK_INTERVAL);
 

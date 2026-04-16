@@ -5,20 +5,21 @@
 ```
 zapi/
 ├── backend/
-│   ├── api-bun/       # Bun + Elysia API (single unified backend)
-│   └── DOCKER/        # Docker Compose (Postgres, Redis, WuzAPI, api-bun)
-├── web/               # Next.js 15 frontend (App Router)
-└── wuzapi/            # Gitignored — external WuzAPI binary/config
+│   ├── api-bun/           # Bun + Elysia API (single unified backend)
+│   ├── whatsapp-manager/ # Go + Whatsmeow WhatsApp session manager
+│   └── DOCKER/            # Docker Compose (Postgres, Redis, api-bun, whatsapp-manager)
+├── web/                   # Next.js 15 frontend (App Router)
+└── wuzapi/                # Gitignored — legacy WuzAPI binary/config (deprecated)
 ```
 
-**The old `backend/api` (NestJS) and `backend/wss` are gone.** The entire backend is now a single Bun + Elysia service in `backend/api-bun`. References to NestJS, BullMQ, or `backend/wss` in `.agent/workflows/` and `README.md` are stale.
+**The old `backend/api` (NestJS) and `backend/wss` are gone.** The entire backend is now a single Bun + Elysia service in `backend/api-bun`. WhatsApp session management moved to `backend/whatsapp-manager` (Go + Whatsmeow).
 
 ## Backend (`backend/api-bun`)
 
 - **Runtime**: Bun (not Node.js). Use `bun` for all commands, not `yarn`/`npm`.
 - **Framework**: Elysia (not NestJS). No decorators/modules — plain functional route files in `src/routes/`.
 - **Job queues**: Redis Streams via `src/streams/` (replaced BullMQ). Producer: `addJob()`. Consumer: `StreamConsumer` class with XREADGROUP.
-- **WhatsApp**: Calls external WuzAPI service over HTTP (`src/services/wuzapi.ts`) with retry + circuit breaker. No direct Baileys/WPPConnect dependency.
+- **WhatsApp**: Uses internal WhatsApp Manager service at `http://localhost:8090` (`src/services/whatsapp-manager.ts`) with retry + circuit breaker. The Manager is a Go service (`backend/whatsapp-manager/`) using Whatsmeow library.
 - **Path alias**: `@/*` maps to `./src/*` (tsconfig paths).
 - **Prisma 6**: `binaryTargets` includes `linux-musl-openssl-3.0.x` for Alpine Docker. Pin confirmed in `.vscode/settings.json`.
 - **Build output**: `bun build` compiles to a single native binary `./api-bun`.
@@ -56,7 +57,7 @@ bun test tests/auth.test.ts  # Single test file
 
 `DATABASE_URL`, `JWT_SECRET`, `MP_WEBHOOK_SECRET`, `MP_ACCESS_TOKEN`
 
-See `.env.example` for full list including `WUZAPI_*`, `REDIS_*`, `THROTTLE_*`, `ADMIN_EMAILS`.
+See `.env.example` for full list including `WHATSAPP_MANAGER_URL`, `WUZAPI_*`, `REDIS_*`, `THROTTLE_*`, `ADMIN_EMAILS`.
 
 ### Key architecture details
 
@@ -105,11 +106,11 @@ Note: `lib/api.ts` reads `NEXT_PUBLIC_API_HOST` (not `NEXT_PUBLIC_API_URL`). Che
 
 `backend/DOCKER/docker-compose.yml` runs 4 services:
 - `api-bun` — builds from `backend/api-bun/Dockerfile`
-- `wuzapi` — `asternic/wuzapi` image (WhatsApp engine, listens on container port 8080, mapped to host 8082)
+- `whatsapp-manager` — Go-based WhatsApp session manager using Whatsmeow (port 8090)
 - `postgres` — PostgreSQL 15
 - `redis` — Redis 7 Alpine
 
-WuzAPI env vars (`WUZAPI_ADMIN_TOKEN`, `WUZAPI_GLOBAL_ENCRYPTION_KEY`, etc.) come from `backend/DOCKER/.env`.
+WuzAPI (`asternic/wuzapi`) is no longer used — it has been replaced by the internal `whatsapp-manager` service.
 
 ## Development (all services)
 
@@ -121,12 +122,15 @@ WuzAPI env vars (`WUZAPI_ADMIN_TOKEN`, `WUZAPI_GLOBAL_ENCRYPTION_KEY`, etc.) com
 
 ```bash
 # Terminal 1: Docker services
-cd backend/DOCKER && docker compose up postgres redis wuzapi
+cd backend/DOCKER && docker compose up postgres redis
 
-# Terminal 2: API
+# Terminal 2: WhatsApp Manager (Go)
+cd backend/whatsapp-manager && go build -o whatsapp-manager ./cmd/server && ./whatsapp-manager
+
+# Terminal 3: API
 cd backend/api-bun && bun run dev
 
-# Terminal 3: Frontend
+# Terminal 4: Frontend
 cd web && yarn dev
 ```
 

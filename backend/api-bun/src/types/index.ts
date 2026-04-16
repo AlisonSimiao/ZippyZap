@@ -100,3 +100,11 @@ export interface WuzapiWebhookPayload<T = any> {
   type: string;
   userID: string;
 }
+
+// ─── WhatsApp Manager Webhook Payload ───────────────────────────────
+
+export interface WhatsAppManagerWebhookPayload {
+  event: 'connected' | 'disconnected' | 'qr' | 'message.received' | 'message.sent' | 'message.receipt';
+  sessionId: string;
+  data: Record<string, any>;
+}

@@ -1,47 +1,34 @@
-import { redisGet } from '../../services/redis';
-import { wuzapiClient } from '../../services/wuzapi';
+import { redisGet, redisSet } from '../../services/redis';
+import { whatsappManagerClient } from '../../services/whatsapp-manager';
 
 /**
- * Create User handler — replaces WSS UserCreate processor
- *
- * Creates user in WuzAPI → checks status → starts WhatsApp session
+ * Create User handler — creates WhatsApp session via WhatsApp Manager
  */
 export async function handleCreateUser(
   data: Record<string, any>,
 ): Promise<void> {
-  const { idUser, apiKeyHash } = data;
+  const { idUser } = data;
 
-  // Get API key hash from Redis if not provided
-  let userApiKeyHash = apiKeyHash;
-  if (!userApiKeyHash) {
-    userApiKeyHash = await redisGet(`user:${idUser}:apikey`);
-    if (!userApiKeyHash) {
-      throw new Error('API key not found for user');
-    }
+  if (!idUser) {
+    throw new Error('idUser is required');
   }
 
-  // Create WuzAPI user if not exists
-  await wuzapiClient.createWuzapiUser(idUser, userApiKeyHash);
+  const sessionId = `user_${idUser}`;
 
-  // Check if session is already connected
-  console.log(`[CreateUser] Checking connection status for user ${idUser}...`);
-  const status = await wuzapiClient.getConnectionStatus(
-    idUser,
-    userApiKeyHash,
-  );
+  // Create session in WhatsApp Manager
+  console.log(`[CreateUser] Creating session for user ${idUser}...`);
+  const session = await whatsappManagerClient.createSession(idUser, sessionId);
+
+  // Store session ID in Redis for later use
+  await redisSet(`user:${idUser}:session`, sessionId, 3600 * 24); // 24h TTL
+
+  // Check initial status - if already connected, great! Otherwise need to scan QR
+  const status = await whatsappManagerClient.getConnectionStatus(sessionId);
+  console.log(`[CreateUser] Session ${sessionId} status: ${status}`);
 
   if (status === 'connected') {
-    console.log(
-      `[CreateUser] User ${idUser} is already connected. Logging out to generate new QR code...`,
-    );
-    await wuzapiClient.logout(idUser, userApiKeyHash);
-    // Wait a bit for logout to complete
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log(`[CreateUser] User ${idUser} is already connected!`);
+  } else {
+    console.log(`[CreateUser] Session ${sessionId} needs QR code scan`);
   }
-
-  // Start WhatsApp session (will generate QR code)
-  console.log(`[CreateUser] Starting session for user ${idUser}...`);
-  await wuzapiClient.startSession(idUser, userApiKeyHash);
-
-  console.log(`[CreateUser] Session creation initiated for user ${idUser}`);
 }
