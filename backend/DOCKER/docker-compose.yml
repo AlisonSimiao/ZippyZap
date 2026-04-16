@@ -17,6 +17,7 @@ services:
       - MP_WEBHOOK_SECRET=${MP_WEBHOOK_SECRET:-'your-webhook-secret-from-mercadopago'}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
       - BACKEND_URL=http://localhost:8080
+      - WHATSAPP_MANAGER_URL=http://zapi-whatsapp-manager:8090
       - WUZAPI_BASE_URL=http://zapi-wuzapi:8080
       - WUZAPI_ADMIN_TOKEN=${WUZAPI_ADMIN_TOKEN}
       - WUZAPI_WEBHOOK_URL=http://zapi-api-bun:8080/webhooks/wuzapi
@@ -30,7 +31,23 @@ services:
     depends_on:
       - postgres
       - redis
-      - wuzapi
+      - whatsapp-manager
+    restart: unless-stopped
+
+  # whatsapp-manager: Go-based WhatsApp session manager using Whatsmeow
+  whatsapp-manager:
+    build:
+      context: ./../whatsapp-manager
+      dockerfile: Dockerfile
+    container_name: zapi-whatsapp-manager
+    environment:
+      - WEBHOOK_URL=http://zapi-api-bun:8080/webhooks/whatsapp-manager
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./.data/whatsapp-manager:/app/data
+    depends_on:
+      - api-bun
     restart: unless-stopped
 
   wuzapi:
