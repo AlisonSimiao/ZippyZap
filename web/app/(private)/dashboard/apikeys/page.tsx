@@ -21,11 +21,14 @@ import { useAuth } from '@/hooks/useAuth'
 import { IApikey } from '@/types/apikey'
 import { format } from 'date-fns'
 import { CreateApiKeyModal } from '@/components/modals/CreateApiKeyModal'
+import { EditApiKeyModal } from '@/components/modals/EditApiKeyModal'
 
 export default function ApiKeysPage() {
   const { accessToken } = useAuth()
   const [apiKeys, setApiKeys] = useState<IApikey[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedApiKey, setSelectedApiKey] = useState<IApikey | null>(null)
 
   useEffect(() => {
     if (!accessToken) return
@@ -192,6 +195,10 @@ export default function ApiKeysPage() {
                             <Button
                               variant="ghost"
                               size="icon"
+                              onClick={() => {
+                                setSelectedApiKey(apiKey)
+                                setIsEditModalOpen(true)
+                              }}
                               className="h-9 w-9 text-foreground/30 hover:text-primary hover:bg-primary/10 transition-all rounded-xl"
                             >
                               <Edit className="h-4 w-4" />
@@ -224,6 +231,18 @@ export default function ApiKeysPage() {
             .catch(error => console.error('Error fetching API keys:', error))
         }}
         accessToken={accessToken}
+      />
+
+      <EditApiKeyModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={() => {
+          api.getApiKeys(accessToken)
+            .then(setApiKeys)
+            .catch(error => console.error('Error fetching API keys:', error))
+        }}
+        accessToken={accessToken}
+        apiKey={selectedApiKey}
       />
     </div>
   )
