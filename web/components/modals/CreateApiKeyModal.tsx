@@ -44,10 +44,27 @@ export function CreateApiKeyModal({ isOpen, onClose, onSuccess, accessToken }: C
     }
   }
 
-  const copyToken = () => {
+  const copyToken = async () => {
     if (createdToken) {
-      navigator.clipboard.writeText(createdToken)
-      toast.success('Token copiado!')
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(createdToken)
+          toast.success('Token copiado!')
+        } else {
+          const textArea = document.createElement("textarea")
+          textArea.value = createdToken
+          textArea.style.position = "absolute"
+          textArea.style.left = "-999999px"
+          document.body.appendChild(textArea)
+          textArea.focus()
+          textArea.select()
+          document.execCommand('copy')
+          document.body.removeChild(textArea)
+          toast.success('Token copiado!')
+        }
+      } catch (err) {
+        toast.error('Erro ao copiar token')
+      }
     }
   }
 

@@ -1,6 +1,6 @@
 export interface IApikey {
     id: number;
-    key: string;
+    hash: string;
     status: 'ACTIVE' | 'REVOKE';
     name: string;
     createdAt: string;

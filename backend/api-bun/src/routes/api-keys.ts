@@ -79,10 +79,7 @@ export const apiKeyRoutes = new Elysia({ prefix: '/api-keys' })
       },
     });
 
-    return data.map((item) => ({
-      ...item,
-      hash: encryptToken(item.hash),
-    }));
+    return data;
   })
   // ─── Update API Key ────────────────────────────────────────────
   .patch(

@@ -38,9 +38,26 @@ export default function ApiKeysPage() {
       })
   }, [accessToken])
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success('ID da chave copiado!')
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text)
+        toast.success('Chave copiada!')
+      } else {
+        const textArea = document.createElement("textarea")
+        textArea.value = text
+        textArea.style.position = "absolute"
+        textArea.style.left = "-999999px"
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textArea)
+        toast.success('Chave copiada!')
+      }
+    } catch (err) {
+      toast.error('Erro ao copiar a chave')
+    }
   }
 
   return (
@@ -148,7 +165,7 @@ export default function ApiKeysPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => copyToClipboard(apiKey.id.toString())}
+                              onClick={() => copyToClipboard(apiKey.hash)}
                               className="h-8 w-8 text-foreground/30 hover:text-primary hover:bg-primary/10 transition-all"
                             >
                               <Copy className="h-3.5 w-3.5" />

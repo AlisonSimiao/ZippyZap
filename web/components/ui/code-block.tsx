@@ -15,9 +15,25 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
     const [isCopied, setIsCopied] = useState(false)
 
     const copyToClipboard = async () => {
-        await navigator.clipboard.writeText(code)
-        setIsCopied(true)
-        setTimeout(() => setIsCopied(false), 2000)
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(code)
+            } else {
+                const textArea = document.createElement("textarea")
+                textArea.value = code
+                textArea.style.position = "absolute"
+                textArea.style.left = "-999999px"
+                document.body.appendChild(textArea)
+                textArea.focus()
+                textArea.select()
+                document.execCommand('copy')
+                document.body.removeChild(textArea)
+            }
+            setIsCopied(true)
+            setTimeout(() => setIsCopied(false), 2000)
+        } catch (err) {
+            console.error('Failed to copy', err)
+        }
     }
 
     return (
