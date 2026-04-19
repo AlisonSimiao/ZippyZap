@@ -3,6 +3,14 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { 
   Key, 
   Copy, 
@@ -29,6 +37,8 @@ export default function ApiKeysPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedApiKey, setSelectedApiKey] = useState<IApikey | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!accessToken) return
@@ -206,6 +216,10 @@ export default function ApiKeysPage() {
                             <Button
                               variant="ghost"
                               size="icon"
+                              onClick={() => {
+                                setSelectedApiKey(apiKey)
+                                setIsDeleteDialogOpen(true)
+                              }}
                               className="h-9 w-9 text-foreground/30 hover:text-rose-500 hover:bg-rose-500/10 transition-all rounded-xl"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -244,6 +258,52 @@ export default function ApiKeysPage() {
         accessToken={accessToken}
         apiKey={selectedApiKey}
       />
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-background border-white/10 text-foreground shadow-2xl shadow-rose-500/10">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-serif font-bold tracking-tight text-rose-500">
+              <Trash2 className="h-5 w-5" />
+              Excluir API Key
+            </DialogTitle>
+            <DialogDescription className="text-foreground/60">
+              Tem certeza que deseja excluir a chave <span className="text-foreground font-bold">{selectedApiKey?.name}</span>? 
+              Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="grid grid-cols-2 gap-3 pt-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsDeleteDialogOpen(false)} 
+              className="text-foreground/50 hover:bg-white/5 font-bold uppercase tracking-widest text-xs h-11"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={async () => {
+                if (!selectedApiKey) return
+                setDeleting(true)
+                try {
+                  await api.deleteApiKey(accessToken, selectedApiKey.name)
+                  toast.success('API Key excluída!')
+                  setIsDeleteDialogOpen(false)
+                  api.getApiKeys(accessToken)
+                    .then(setApiKeys)
+                    .catch(error => console.error('Error fetching API keys:', error))
+                } catch (error) {
+                  toast.error('Erro ao excluir API Key')
+                } finally {
+                  setDeleting(false)
+                }
+              }}
+              disabled={deleting}
+              className="bg-rose-500 text-white hover:opacity-90 font-bold uppercase tracking-widest text-xs h-11 shadow-lg shadow-rose-500/20"
+            >
+              {deleting ? 'Excluindo...' : 'Confirmar Exclusão'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

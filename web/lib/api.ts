@@ -87,6 +87,14 @@ class ApiClient {
     }).then(({ data }) => data)
   }
 
+  async deleteApiKey(accessToken: string, name: string) {
+    return this.client.delete(`/api-keys/${name}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    }).then(({ data }) => data)
+  }
+
   async createPayment(accessToken: string, planId: number): Promise<{
     checkoutUrl: string;
     paymentId: number;
